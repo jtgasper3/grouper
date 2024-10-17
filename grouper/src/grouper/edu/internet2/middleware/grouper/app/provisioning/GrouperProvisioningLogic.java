@@ -801,6 +801,9 @@ public class GrouperProvisioningLogic {
   public void loadDataToGrouper() {
     loadEntityDataToGrouper();
     loadEntityAttributesDataToGrouper();
+    
+    loadGroupDataToGrouper();
+    loadMembershipDataToGrouper();
   }
 
   public void loadEntityDataToGrouper() {
@@ -907,7 +910,7 @@ public class GrouperProvisioningLogic {
     }
     
   }
-
+  
   public void loadGroupDataToGrouper() {
     
     if (!this.getGrouperProvisioner().retrieveGrouperProvisioningBehavior().isLoadEntitiesToGrouperTable()) {
@@ -2728,16 +2731,16 @@ public class GrouperProvisioningLogic {
     
     targetQueryThread.run();
 
-    // get all grouper data for the provisioner
-    // and put in GrouperProvisioningDataSyncGrouper
-    GrouperProvisioningLists grouperProvisioningLists = this.grouperProvisioner.retrieveGrouperDao().retrieveGrouperDataFull();
-
     //targetQueryThread.start();
     //GrouperClientUtils.join(targetQueryThread);
     if (RUNTIME_EXCEPTION[0] != null) {
       throw RUNTIME_EXCEPTION[0];
     }
     
+    // get all grouper data for the provisioner
+    // and put in GrouperProvisioningDataSyncGrouper
+    GrouperProvisioningLists grouperProvisioningLists = this.grouperProvisioner.retrieveGrouperDao().retrieveGrouperDataFull();
+
     // put wrappers on the grouper objects and put in the grouper uuid maps in data object
     // put these wrapper in the GrouperProvisioningData and GrouperProvisioningDataIndex
     this.grouperProvisioner.retrieveGrouperDao().processWrappers(grouperProvisioningLists);

@@ -21,6 +21,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -28,12 +30,17 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.TriggerKey;
+import org.quartz.impl.matchers.GroupMatcher;
 
 import edu.internet2.middleware.grouper.GrouperSession;
 import edu.internet2.middleware.grouper.Member;
 import edu.internet2.middleware.grouper.MemberFinder;
 import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.grouper.app.loader.GrouperDaemonDeleteOldRecords;
+import edu.internet2.middleware.grouper.app.loader.GrouperLoader;
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
 import edu.internet2.middleware.grouper.app.loader.OtherJobBase.OtherJobInput;
 import edu.internet2.middleware.grouper.app.loader.db.GrouperLoaderDb;
@@ -53,6 +60,7 @@ import edu.internet2.middleware.grouper.hibernate.HibernateSession;
 import edu.internet2.middleware.grouper.hooks.examples.AttributeAutoCreateHook;
 import edu.internet2.middleware.grouper.internal.dao.QueryOptions;
 import edu.internet2.middleware.grouper.misc.AddMissingGroupSets;
+import edu.internet2.middleware.grouper.misc.GrouperCheckConfig;
 import edu.internet2.middleware.grouper.misc.GrouperDAOFactory;
 import edu.internet2.middleware.grouper.misc.GrouperSessionHandler;
 import edu.internet2.middleware.grouper.permissions.limits.PermissionLimitUtils;
@@ -897,10 +905,8 @@ public enum UpgradeTasks implements UpgradeTasksInterface {
         }
       });
     }
-  }
-  ,
-  
- V26{
+  },
+  V14{
     @Override
     public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
       
@@ -1270,230 +1276,7 @@ public enum UpgradeTasks implements UpgradeTasksInterface {
         }
       });
     }
-  },
-  /**
-   * make sure internal_id is populated in grouper_members and make column not null
-   */
-  V10 {
-    
-    @Override
-    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
-      // do a blank ten so v4 upgrades (which added ten) will get the new stuff
-    }
-  }      
-  ,
-  /**
-   * make sure internal_id is populated in grouper_members and make column not null
-   */
-  V11 {
-    
-    @Override
-    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
-      
-      boolean groupsNullable = GrouperDdlUtils.isColumnNullable("grouper_groups", "internal_id", "name", GrouperCheckConfig.attributeRootStemName() + ":upgradeTasks:upgradeTasksMetadataGroup");
-      boolean fieldsNullable = GrouperDdlUtils.isColumnNullable("grouper_fields", "internal_id", "name", "admins");
-      
-      if (groupsNullable || fieldsNullable) {
-        // ok nulls are allowed so make the change
-        GrouperDaemonDeleteOldRecords.verifyTableIdIndexes(null);
-      }
-      
-      if (groupsNullable) {
-        String sql = null;
-        
-        if (GrouperDdlUtils.isOracle()) {
-          sql = "ALTER TABLE grouper_groups MODIFY (internal_id NOT NULL)";
-        } else if (GrouperDdlUtils.isMysql()) {
-          sql = "ALTER TABLE grouper_groups MODIFY internal_id BIGINT NOT NULL";
-        } else if (GrouperDdlUtils.isPostgres()) {
-          sql = "ALTER TABLE grouper_groups ALTER COLUMN internal_id SET NOT NULL";
-        } else {
-          throw new RuntimeException("Which database are we????");
-        }
-        
-        new GcDbAccess().sql(sql).executeSql();
-      }
-      
-      if (fieldsNullable) {
-        String sql = null;
-
-        if (GrouperDdlUtils.isOracle()) {
-          sql = "ALTER TABLE grouper_fields MODIFY (internal_id NOT NULL)";
-        } else if (GrouperDdlUtils.isMysql()) {
-          sql = "ALTER TABLE grouper_fields MODIFY internal_id BIGINT NOT NULL";
-        } else if (GrouperDdlUtils.isPostgres()) {
-          sql = "ALTER TABLE grouper_fields ALTER COLUMN internal_id SET NOT NULL";
-        } else {
-          throw new RuntimeException("Which database are we????");
-        }
-        
-        new GcDbAccess().sql(sql).executeSql();
-      }
-
-      // cant add foreign key until this is there
-      if (GrouperDdlUtils.isOracle()) {
-        
-        String sql = "ALTER TABLE grouper_fields ADD CONSTRAINT grouper_fie_internal_id_unq unique (internal_id)";
-        
-        if (!GrouperDdlUtils.doesConstraintExistOracle("grouper_fie_internal_id_unq")) {
-          try {
-            new GcDbAccess().sql(sql).executeSql();
-          } catch (Exception e) {
-            if (!GrouperUtil.getFullStackTrace(e).contains("ORA-02261")) {
-              // throw if the exception is anything other than the constraint already exists
-              throw e;
-            }
-          }
-        }
-        
-        sql = "ALTER TABLE grouper_groups ADD CONSTRAINT grouper_grp_internal_id_unq unique (internal_id)";
-        
-        if (!GrouperDdlUtils.doesConstraintExistOracle("grouper_grp_internal_id_unq")) {
-          try {
-            new GcDbAccess().sql(sql).executeSql();
-          } catch (Exception e) {
-            if (!GrouperUtil.getFullStackTrace(e).contains("ORA-02261")) {
-              // throw if the exception is anything other than the constraint already exists
-              throw e;
-            }
-          }
-        }
-
-        sql = "ALTER TABLE grouper_sql_cache_group ADD CONSTRAINT grouper_sql_cache_group1_fk FOREIGN KEY (field_internal_id) REFERENCES grouper_fields(internal_id)";
-        
-        if (!GrouperDdlUtils.doesConstraintExistOracle("grouper_sql_cache_group1_fk")) {
-          try {
-            new GcDbAccess().sql(sql).executeSql();
-          } catch (Exception e) {
-            if (!GrouperUtil.getFullStackTrace(e).contains("ORA-02275")) {
-              // throw if the exception is anything other than the constraint already exists
-              throw e;
-            }
-          }
-        }
-      }
-
-    }
-  }
-  , 
-  /**
-   * make sure internal_id is populated in grouper_members and make column not null
-   */
-  V12 {
-    
-    @Override
-    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
-      
-      if (!GrouperDdlUtils.isColumnNullable("grouper_members", "internal_id", "subject_id", "GrouperSystem")) {
-        return;
-      }
-      
-      // ok nulls are allowed so make the change
-      GrouperDaemonDeleteOldRecords.verifyTableIdIndexes(null);
-      String sql = null;
-      
-      if (GrouperDdlUtils.isOracle()) {
-        sql = "ALTER TABLE grouper_members MODIFY (internal_id NOT NULL)";
-      } else if (GrouperDdlUtils.isMysql()) {
-        sql = "ALTER TABLE grouper_members MODIFY internal_id BIGINT NOT NULL";
-      } else if (GrouperDdlUtils.isPostgres()) {
-        sql = "ALTER TABLE grouper_members ALTER COLUMN internal_id SET NOT NULL";
-      } else {
-        throw new RuntimeException("Which database are we????");
-      }
-      
-      new GcDbAccess().sql(sql).executeSql();
-    }
-  }
-  ,
-  /**
-   * make sure source_internal_id is populated in pit tables (fields/members/groups)
-   */
-  V13 {
-    
-    @Override
-    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {      
-      new GcDbAccess().sql("update grouper_pit_groups  pg set source_internal_id = (select g.internal_id from grouper_groups  g where pg.source_id = g.id) where pg.source_internal_id is null and pg.active='T'").executeSql();
-      new GcDbAccess().sql("update grouper_pit_fields  pf set source_internal_id = (select f.internal_id from grouper_fields  f where pf.source_id = f.id) where pf.source_internal_id is null and pf.active='T'").executeSql();
-      new GcDbAccess().sql("update grouper_pit_members pm set source_internal_id = (select m.internal_id from grouper_members m where pm.source_id = m.id) where pm.source_internal_id is null and pm.active='T'").executeSql();
-    }
-  }
-  ,
-  
-  /**
-   * remove old maintenance jobs
-   */
-  V15 {
-    @Override
-    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {      
-      try {
-        Scheduler scheduler = GrouperLoader.schedulerFactory().getScheduler();
-        List<TriggerKey> triggerKeys = new ArrayList<TriggerKey>();
-        triggerKeys.add(TriggerKey.triggerKey("triggerMaintenance_cleanLogs"));
-        triggerKeys.add(TriggerKey.triggerKey("triggerMaintenance_enabledDisabled"));
-        triggerKeys.add(TriggerKey.triggerKey("triggerMaintenance_Messaging"));
-        triggerKeys.add(TriggerKey.triggerKey("triggerMaintenance_externalSubjCalcFields"));
-        triggerKeys.add(TriggerKey.triggerKey("triggerMaintenance_rules"));
-        
-        for (TriggerKey triggerKey : triggerKeys) {
-          if (scheduler.checkExists(triggerKey)) {
-            scheduler.unscheduleJob(triggerKey);
-            otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", removed quartz trigger " + triggerKey.getName());
-          }
-        }
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }
-  }
-  ,
-  /**
-   * remove old maintenance jobs
-   */
-  V17 {
-    @Override
-    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {      
-      try {
-        Scheduler scheduler = GrouperLoader.schedulerFactory().getScheduler();
-        List<TriggerKey> triggerKeys = new ArrayList<TriggerKey>();
-        triggerKeys.add(TriggerKey.triggerKey("triggerMaintenance_grouperReport"));
-        
-        for (TriggerKey triggerKey : triggerKeys) {
-          if (scheduler.checkExists(triggerKey)) {
-            scheduler.unscheduleJob(triggerKey);
-            otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", removed quartz trigger " + triggerKey.getName());
-          }
-        }
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }
-  }
-  ,
-  /**
-   * remove old maintenance jobs
-   */
-  V18 {
-    @Override
-    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {      
-      try {
-        Scheduler scheduler = GrouperLoader.schedulerFactory().getScheduler();
-
-        for (JobKey jobKey : scheduler.getJobKeys(GroupMatcher.jobGroupEquals("DEFAULT"))) {
-          String jobName = jobKey.getName();
-          if (jobName.startsWith("MAINTENANCE__groupSync__")) {
-            String triggerName = "trigger_" + jobName;
-            scheduler.unscheduleJob(TriggerKey.triggerKey(triggerName));
-            otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", removed quartz trigger " + triggerName);
-          }
-        }
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }
-  }
-  ,
-  ;
+  };
   
   /** logger */
   private static final Log LOG = GrouperUtil.getLog(UpgradeTasks.class);
