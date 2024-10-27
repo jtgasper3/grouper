@@ -303,13 +303,11 @@ public class GrouperProvisioningService {
 
     GrouperProvisioningObjectAttributes grouperProvisioningObjectAttributes;
     String parentStemId;
-    Set<String> policyGroupIds = new HashSet<String>();
     
     if (grouperObject instanceof Group) {
       grouperProvisioningObjectAttributes = new GrouperProvisioningObjectAttributes(grouperObject.getId(), grouperObject.getName(), ((Group)grouperObject).getIdIndex(), null);
       grouperProvisioningObjectAttributes.setOwnedByGroup(true);
       parentStemId = ((Group)grouperObject).getParentUuid();
-      policyGroupIds = provisioner.retrieveGrouperDao().retrieveProvisioningGroupIdsThatArePolicyGroups(Collections.singleton(grouperObject.getId()));
     } else {
       grouperProvisioningObjectAttributes = new GrouperProvisioningObjectAttributes(grouperObject.getId(), grouperObject.getName(), ((Stem)grouperObject).getIdIndex(), null);
       grouperProvisioningObjectAttributes.setOwnedByStem(true);
@@ -318,7 +316,7 @@ public class GrouperProvisioningService {
 
     Map<String, GrouperProvisioningObjectAttributes> ancestorProvisioningGroupAttributes = provisioner.retrieveGrouperDao().retrieveAncestorProvisioningAttributesByFolder(parentStemId);
     
-    Map<String, GrouperProvisioningObjectAttributes> calculatedProvisioningAttributes = GrouperProvisioningService.calculateProvisioningAttributes(provisioner, Collections.singleton(grouperProvisioningObjectAttributes), ancestorProvisioningGroupAttributes, policyGroupIds);
+    Map<String, GrouperProvisioningObjectAttributes> calculatedProvisioningAttributes = GrouperProvisioningService.calculateProvisioningAttributes(provisioner, Collections.singleton(grouperProvisioningObjectAttributes), ancestorProvisioningGroupAttributes);
     if (calculatedProvisioningAttributes.size() == 0) {
       return null;
     }
@@ -2231,11 +2229,73 @@ public class GrouperProvisioningService {
    * @param policyGroupIds
    * @return calculated provisioning attributes
    */
-  public static Map<String, GrouperProvisioningObjectAttributes> calculateProvisioningAttributes(GrouperProvisioner grouperProvisioner, Set<GrouperProvisioningObjectAttributes> grouperProvisioningObjectAttributesToProcess, Map<String, GrouperProvisioningObjectAttributes> grouperProvisioningFolderAttributes, Set<String> policyGroupIds) {
+  public static Map<String, GrouperProvisioningObjectAttributes> calculateProvisioningAttributes(GrouperProvisioner grouperProvisioner, Set<GrouperProvisioningObjectAttributes> grouperProvisioningObjectAttributesToProcess, Map<String, GrouperProvisioningObjectAttributes> grouperProvisioningFolderAttributes) {
     String configId = grouperProvisioner.getConfigId();
 
     Map<String, GrouperProvisioningObjectAttributes> allCalculatedProvisioningAttributes = new HashMap<String, GrouperProvisioningObjectAttributes>();
     
+    Set<String> policyGroupIdsToLookup = new HashSet<String>();
+    
+    // go through each object attribute and see which groups we need to look up policy groups for
+    for (GrouperProvisioningObjectAttributes grouperProvisioningObjectAttribute : grouperProvisioningObjectAttributesToProcess) {
+
+      if (grouperProvisioningObjectAttribute.isDeleted()) {
+        continue;
+      }
+      
+      if ("true".equalsIgnoreCase(grouperProvisioningObjectAttribute.getProvisioningDirectAssign())) {
+        continue;
+      }
+      
+      GrouperProvisioningObjectAttributes ancestorGrouperProvisioningObjectAttribute = null;
+      
+      int depth = 0;
+      String currObjectName = grouperProvisioningObjectAttribute.getName();
+      while (true) {
+        depth++;
+        currObjectName = GrouperUtil.parentStemNameFromName(currObjectName, false);
+        if (currObjectName == null) {
+          break;
+        }
+        
+        GrouperProvisioningObjectAttributes currGrouperProvisioningObjectAttribute = grouperProvisioningFolderAttributes.get(currObjectName);
+        if (currGrouperProvisioningObjectAttribute != null && "true".equalsIgnoreCase(currGrouperProvisioningObjectAttribute.getProvisioningDirectAssign())) {
+          
+          if (depth > 1 && !"sub".equalsIgnoreCase(currGrouperProvisioningObjectAttribute.getProvisioningStemScope())) {
+            // not applicable, continue going up the hiearchy
+            continue;
+          }
+          
+          if (!GrouperUtil.equals(configId, currGrouperProvisioningObjectAttribute.getProvisioningDoProvision())) {
+            // not supposed to provision anything under here
+            break;
+          }
+          
+          if (grouperProvisioningObjectAttribute.isOwnedByGroup()) {
+            
+            String provisionableRegex = getProvisionableRegex(grouperProvisioner, currGrouperProvisioningObjectAttribute);
+            if (!GrouperUtil.isEmpty(provisionableRegex)) {
+              if (!GrouperProvisioningObjectMetadata.groupNameMatchesRegex(grouperProvisioningObjectAttribute.getName(), provisionableRegex)) {
+                // not provisioning group that doesn't match regex
+                break;
+              }
+            }
+
+            if (isOnlyProvisionPolicyGroups(grouperProvisioner, currGrouperProvisioningObjectAttribute)) {
+              policyGroupIdsToLookup.add(grouperProvisioningObjectAttribute.getId());
+            }
+            
+          }
+          
+          ancestorGrouperProvisioningObjectAttribute = currGrouperProvisioningObjectAttribute;
+          break;
+        }
+      }
+    }
+    
+    // lookup policy groups
+    Set<String> policyGroupIds = grouperProvisioner.retrieveGrouperDao().retrieveProvisioningGroupIdsThatArePolicyGroups(policyGroupIdsToLookup);
+
     // go through each group and recompute what the attributes should be by looking at ancestor folders
     for (GrouperProvisioningObjectAttributes grouperProvisioningObjectAttribute : grouperProvisioningObjectAttributesToProcess) {
 
