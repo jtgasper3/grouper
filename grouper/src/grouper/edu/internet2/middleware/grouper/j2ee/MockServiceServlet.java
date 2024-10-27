@@ -16,6 +16,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import edu.internet2.middleware.grouper.app.adobe.AdobeMockServiceHandler;
 import edu.internet2.middleware.grouper.app.azure.AzureMockServiceHandler;
 import edu.internet2.middleware.grouper.app.boxProvisioner.BoxMockServiceHandler;
 import edu.internet2.middleware.grouper.app.duo.DuoMockServiceHandler;
@@ -48,6 +49,7 @@ public class MockServiceServlet extends HttpServlet {
    * add handlers here to handle requests
    */
   private static final Map<String, String> urlToHandler = GrouperUtil.toMap(
+      "adobe", AdobeMockServiceHandler.class.getName(),
       "azure", AzureMockServiceHandler.class.getName(),
       "awsScim", AwsScim2MockServiceHandler.class.getName(),
       "box", BoxMockServiceHandler.class.getName(),

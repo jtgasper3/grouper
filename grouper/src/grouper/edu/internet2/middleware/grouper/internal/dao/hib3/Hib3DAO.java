@@ -44,6 +44,10 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
+import edu.internet2.middleware.grouper.app.adobe.GrouperAdobeAuth;
+import edu.internet2.middleware.grouper.app.adobe.GrouperAdobeGroup;
+import edu.internet2.middleware.grouper.app.adobe.GrouperAdobeMembership;
+import edu.internet2.middleware.grouper.app.adobe.GrouperAdobeUser;
 import edu.internet2.middleware.grouper.app.azure.GrouperAzureAuth;
 import edu.internet2.middleware.grouper.app.azure.GrouperAzureGroup;
 import edu.internet2.middleware.grouper.app.azure.GrouperAzureMembership;
@@ -261,6 +265,11 @@ public abstract class Hib3DAO {
         addClass(configuration, GrouperBoxUser.class);
         addClass(configuration, GrouperBoxMembership.class);
         addClass(configuration, GrouperBoxAuth.class);
+        
+        addClass(configuration, GrouperAdobeGroup.class);
+        addClass(configuration, GrouperAdobeUser.class);
+        addClass(configuration, GrouperAdobeMembership.class);
+        addClass(configuration, GrouperAdobeAuth.class);
         
         addClass(configuration, GrouperRemedyGroup.class);
         addClass(configuration, GrouperRemedyUser.class);

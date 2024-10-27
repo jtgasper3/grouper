@@ -19,6 +19,7 @@ import org.quartz.SchedulerException;
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
 import edu.internet2.middleware.grouper.GrouperSession;
+import edu.internet2.middleware.grouper.app.adobe.AdobeProvisionerConfiguration;
 import edu.internet2.middleware.grouper.app.azure.AzureProvisionerConfiguration;
 import edu.internet2.middleware.grouper.app.boxProvisioner.BoxProvisionerConfiguration;
 import edu.internet2.middleware.grouper.app.config.GrouperConfigurationModuleAttribute;
@@ -49,7 +50,6 @@ import edu.internet2.middleware.grouper.privs.PrivilegeHelper;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
 import edu.internet2.middleware.grouperClient.jdbc.tableSync.GcGrouperSync;
 import edu.internet2.middleware.grouperClient.jdbc.tableSync.GcGrouperSyncDao;
-import edu.internet2.middleware.grouperClient.jdbc.tableSync.GcGrouperSyncDependencyGroupGroup;
 import edu.internet2.middleware.grouperClient.jdbc.tableSync.GcGrouperSyncErrorCode;
 import edu.internet2.middleware.grouperClient.jdbc.tableSync.GcGrouperSyncGroup;
 import edu.internet2.middleware.grouperClient.jdbc.tableSync.GcGrouperSyncJob;
@@ -90,6 +90,7 @@ public abstract class ProvisioningConfiguration extends GrouperConfigurationModu
     List<String> configClassNamesList = new ArrayList<>();
     
     configClassNamesList.add(AzureProvisionerConfiguration.class.getName());
+    configClassNamesList.add(AdobeProvisionerConfiguration.class.getName());
     configClassNamesList.add(DigitalMarketplaceProvisionerConfiguration.class.getName());
     configClassNamesList.add(DuoProvisionerConfiguration.class.getName());
     configClassNamesList.add(DuoRoleProvisionerConfiguration.class.getName());
