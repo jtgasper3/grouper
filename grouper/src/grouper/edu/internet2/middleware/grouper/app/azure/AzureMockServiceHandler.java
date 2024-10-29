@@ -325,17 +325,20 @@ public class AzureMockServiceHandler extends MockServiceHandler {
           }
           
           responsesNode.add(getGroupsResponse);
-        } else if (StringUtils.equals(urlParts[0], "/groups") && urlParts.length == 2 ) { // get a particular group
+        } else if (urlPartsList.size() == 2 && StringUtils.equals(urlPartsList.get(0), "groups") ) { // get a particular group
+
+          String filter = urlPartsList.get(1);
+          String[] beforeAfterGroup = filter.split("\\?\\$select=");
+
+          MultiKey getGroupResult = getGroup(beforeAfterGroup[0], GrouperUtil.escapeUrlDecode(beforeAfterGroup[1]));
+          ObjectNode getGroupResponse = GrouperUtil.jsonJacksonNode();
+          getGroupResponse.put("id", id);
+          getGroupResponse.put("status", (Integer)getGroupResult.getKey(0));
+          if (getGroupResult.getKey(1) != null) {
+            getGroupResponse.set("body", (JsonNode)getGroupResult.getKey(1));
+          }
           
-//          MultiKey getGroupResult = getGroup1(urlParts[1], keyValue.get("$select"));
-//          ObjectNode getGroupResponse = GrouperUtil.jsonJacksonNode();
-//          getGroupResponse.put("id", id);
-//          getGroupResponse.put("status", (Integer)getGroupResult.getKey(0));
-//          if (getGroupResult.getKey(1) != null) {
-//            getGroupResponse.set("body", (JsonNode)getGroupResult.getKey(1));
-//          }
-//          
-//          responsesNode.add(getGroupResponse);
+          responsesNode.add(getGroupResponse);
         } else if ( urlPartsList.size() == 1 && StringUtils.startsWith(urlPartsList.get(0), "users?")) {
           
           String groupsFilter = urlPartsList.get(0);
