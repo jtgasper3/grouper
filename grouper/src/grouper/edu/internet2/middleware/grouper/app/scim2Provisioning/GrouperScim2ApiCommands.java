@@ -821,6 +821,11 @@ public class GrouperScim2ApiCommands {
             GrouperUtil.toSet(200), new int[] { -1 }, null, acceptHeader, orgName);
 
         int totalResults = GrouperUtil.jsonJacksonGetInteger(jsonNode, "totalResults");
+        if (totalResults == 0) {
+          return results;
+        }
+
+        // do not do this until after seeing if total results is 0
         int itemsPerPage = GrouperUtil.jsonJacksonGetInteger(jsonNode, "itemsPerPage");
         int returnedStartIndex = GrouperUtil.jsonJacksonGetInteger(jsonNode, "startIndex");
         if (previousStartIndex == returnedStartIndex) {
@@ -833,10 +838,6 @@ public class GrouperScim2ApiCommands {
               + ", itemsPerPage: " + itemsPerPage + ", startIndex: " + startIndex + ", resultsRetrieved: " + results.size());
         }
 
-        if (totalResults == 0) {
-          return results;
-        }
-        
         ArrayNode resourcesNode = (ArrayNode)jsonNode.get("Resources");
 
         if (resourcesNode.size() == 0) {
@@ -1362,6 +1363,13 @@ public class GrouperScim2ApiCommands {
               GrouperUtil.toSet(200), new int[] { -1 }, null, acceptHeader, null);
         }
         int totalResults = GrouperUtil.jsonJacksonGetInteger(jsonNode, "totalResults");
+        
+        if (totalResults == 0) {
+          return results;
+        }
+
+        // do not do this until after seeing if total results is 0
+
         int itemsPerPage = GrouperUtil.jsonJacksonGetInteger(jsonNode, "itemsPerPage");
         int returnedStartIndex = GrouperUtil.jsonJacksonGetInteger(jsonNode, "startIndex");
         if (previousStartIndex == returnedStartIndex) {
@@ -1375,10 +1383,6 @@ public class GrouperScim2ApiCommands {
               + ", itemsPerPage: " + itemsPerPage + ", startIndex: " + startIndex + ", resultsRetrieved: " + results.size());
         }
 
-        if (totalResults == 0) {
-          return results;
-        }
-        
         ArrayNode resourcesNode = (ArrayNode)jsonNode.get("Resources");
 
         if (resourcesNode.size() == 0) {
