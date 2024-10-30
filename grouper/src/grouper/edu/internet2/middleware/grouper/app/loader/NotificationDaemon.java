@@ -292,7 +292,7 @@ public class NotificationDaemon extends OtherJobBase {
             .sql(emailListQuery).addBindVars(bindVariables)
             .selectList(Object[].class);
 
-        gcTableSyncTableMetadata = GcTableSyncTableMetadata.retrieveQueryMetadataFromDatabase(emailListDbConnection, emailListQuery);
+        gcTableSyncTableMetadata = GcTableSyncTableMetadata.retrieveQueryMetadataFromDatabase(emailListDbConnection, emailListQuery, bindVariables);
 
         for (int i=0;i<gcTableSyncTableMetadata.getColumnMetadata().size();i++) {
           GcTableSyncColumnMetadata gcTableSyncColumnMetadata = gcTableSyncTableMetadata.getColumnMetadata().get(i);
