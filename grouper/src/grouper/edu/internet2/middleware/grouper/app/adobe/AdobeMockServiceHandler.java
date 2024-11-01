@@ -818,7 +818,7 @@ public class AdobeMockServiceHandler extends MockServiceHandler {
     if (jsonNode.has("name")) {
       grouperAdobeGroup.setName(GrouperUtil.jsonJacksonGetString(jsonNode, "name"));
     }
-    HibernateSession.byObjectStatic().save(grouperAdobeGroup); 
+    HibernateSession.byObjectStatic().update(grouperAdobeGroup);
   }
   
   public void deleteGroup(String groupName) {
