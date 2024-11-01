@@ -21,7 +21,7 @@ public class AdobeProvisioningLoader extends GrouperProvisioningLoader {
 
   public List<String> getLoaderEntityColumnNames() {
     return GrouperUtil.toList("config_id", "user_id", "username", "email",
-         "status", "type", "firstname", "lastname", "domain", "country");
+         "status", "adobe_type", "firstname", "lastname", "domain", "country");
   }
   
   @Override
@@ -36,7 +36,7 @@ public class AdobeProvisioningLoader extends GrouperProvisioningLoader {
   
 
   public List<String> getLoaderGroupColumnNames() {
-    return GrouperUtil.toList("config_id", "group_id", "name", "type",
+    return GrouperUtil.toList("config_id", "group_id", "name", "adobe_type",
          "product_name", "member_count", "license_quota");
   }
   

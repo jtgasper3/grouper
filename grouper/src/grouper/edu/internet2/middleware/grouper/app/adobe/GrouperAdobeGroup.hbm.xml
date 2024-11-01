@@ -30,7 +30,7 @@
       <generator class="assigned" />
     </id>
 
-    <property name="type" column="type" />
+    <property name="type" column="adobe_type" />
     <property name="name" column="name" />
     <property name="productName" column="product_name" />
     <property name="memberCount" column="member_count" />

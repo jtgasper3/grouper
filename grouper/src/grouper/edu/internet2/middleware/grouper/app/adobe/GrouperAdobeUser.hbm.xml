@@ -46,7 +46,7 @@
     </set> -->
     
     <property name="status" column="status" />
-    <property name="type" column="type" />
+    <property name="type" column="adobe_type" />
     
     <property name="domain" column="domain" />
     <property name="country" column="country" />

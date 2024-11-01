@@ -36,7 +36,7 @@ public class GrouperAdobeGroup {
       
       GrouperDdlUtils.ddlutilsFindOrCreateColumn(loaderTable, "id", Types.BIGINT, "12", true, true);
       GrouperDdlUtils.ddlutilsFindOrCreateColumn(loaderTable, "name", Types.VARCHAR, "2000", false, true);
-      GrouperDdlUtils.ddlutilsFindOrCreateColumn(loaderTable, "type", Types.VARCHAR, "100", false, false);
+      GrouperDdlUtils.ddlutilsFindOrCreateColumn(loaderTable, "adobe_type", Types.VARCHAR, "100", false, false);
       GrouperDdlUtils.ddlutilsFindOrCreateColumn(loaderTable, "product_name", Types.VARCHAR, "2000", false, false);
       GrouperDdlUtils.ddlutilsFindOrCreateColumn(loaderTable, "member_count", Types.BIGINT, "12", false, false);
       GrouperDdlUtils.ddlutilsFindOrCreateColumn(loaderTable, "license_quota", Types.BIGINT, "12", false, false);
