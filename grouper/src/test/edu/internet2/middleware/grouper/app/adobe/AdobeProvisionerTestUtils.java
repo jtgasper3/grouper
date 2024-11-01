@@ -78,10 +78,6 @@ public class AdobeProvisionerTestUtils {
     
     configureProvisionerSuffix(provisioningTestConfigInput, "orgId", "testOrgId");
     
-    if (!StringUtils.isBlank(provisioningTestConfigInput.getBearerTokenExternalSystemConfigId())) {
-      configureProvisionerSuffix(provisioningTestConfigInput, "bearerTokenExternalSystemConfigId", 
-           provisioningTestConfigInput.getBearerTokenExternalSystemConfigId());
-    }
     configureProvisionerSuffix(provisioningTestConfigInput, "adobeExternalSystemConfigId", "adobe");
     
     if (StringUtils.isNotBlank(provisioningTestConfigInput.getSubjectLinkCache0())) {
@@ -108,6 +104,8 @@ public class AdobeProvisionerTestUtils {
     configureProvisionerSuffix(provisioningTestConfigInput, "operateOnGrouperEntities", "true");
     configureProvisionerSuffix(provisioningTestConfigInput, "makeChangesToEntities", "true");
     configureProvisionerSuffix(provisioningTestConfigInput, "selectAllEntities", "true");
+
+    configureProvisionerSuffix(provisioningTestConfigInput, "loadEntitiesToGrouperTable", "true");
     
     configureProvisionerSuffix(provisioningTestConfigInput, "operateOnGrouperGroups", "true");
     configureProvisionerSuffix(provisioningTestConfigInput, "customizeGroupCrud", "true");
@@ -191,14 +189,14 @@ public class AdobeProvisionerTestUtils {
     configureProvisionerSuffix(provisioningTestConfigInput, "targetEntityAttribute.1.translateExpressionType", "grouperProvisioningEntityField");
     configureProvisionerSuffix(provisioningTestConfigInput, "targetEntityAttribute.1.translateFromGrouperProvisioningEntityField", "email");
     
-    configureProvisionerSuffix(provisioningTestConfigInput, "targetEntityAttribute.2.name", "firstName");
+    configureProvisionerSuffix(provisioningTestConfigInput, "targetEntityAttribute.2.name", "firstname");
     configureProvisionerSuffix(provisioningTestConfigInput, "targetEntityAttribute.2.translateExpressionType", "grouperProvisioningEntityField");
     configureProvisionerSuffix(provisioningTestConfigInput, "targetEntityAttribute.2.translateFromGrouperProvisioningEntityField", "name");
     
-    configureProvisionerSuffix(provisioningTestConfigInput, "targetEntityAttribute.3.name", "lastName");
+    configureProvisionerSuffix(provisioningTestConfigInput, "targetEntityAttribute.3.name", "lastname");
     configureProvisionerSuffix(provisioningTestConfigInput, "targetEntityAttribute.3.translateExpressionType", "grouperProvisioningEntityField");
     configureProvisionerSuffix(provisioningTestConfigInput, "targetEntityAttribute.3.translateFromGrouperProvisioningEntityField", "name");
-
+    
     int totalEntityAttributesSoFar = 4; 
     
     configureProvisionerSuffix(provisioningTestConfigInput, "numberOfEntityAttributes", "" + totalEntityAttributesSoFar);

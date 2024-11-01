@@ -110,29 +110,6 @@ public class AdobeProvisionerTestConfigInput {
   }
   
   /**
-   * 
-   */
-  private String bearerTokenExternalSystemConfigId;
-
-  /**
-   * 
-   * @return
-   */
-  public String getBearerTokenExternalSystemConfigId() {
-    return this.bearerTokenExternalSystemConfigId;
-  }
-
-  /**
-   * 
-   * @param bearerTokenExternalSystemConfigId
-   * @return this for chaining
-   */
-  public AdobeProvisionerTestConfigInput assignBearerTokenExternalSystemConfigId(String bearerTokenExternalSystemConfigId) {
-    this.bearerTokenExternalSystemConfigId = bearerTokenExternalSystemConfigId;
-    return this;
-  }
-  
-  /**
    * e.g. ${subject.getAttributeValue('email')}
    */
   private String subjectLinkCache0;

@@ -82,8 +82,11 @@ public class GrouperAdobeTargetDao extends GrouperProvisionerTargetDaoBase {
 
       List<ProvisioningGroup> results = new ArrayList<ProvisioningGroup>();
 
-      List<GrouperAdobeGroup> grouperAdobeGroups = GrouperAdobeApiCommands
-          .retrieveAdobeGroups(adobeConfiguration.getAdobeExternalSystemConfigId(), orgId);
+      List<GrouperAdobeGroup> grouperAdobeGroups = GrouperAdobeApiCommands.retrieveAdobeGroups(adobeConfiguration.getAdobeExternalSystemConfigId(), orgId);
+      
+      TargetDaoRetrieveAllGroupsResponse response = new TargetDaoRetrieveAllGroupsResponse(results);
+      
+      Map<ProvisioningGroup,Object> targetGroupToTargetNativeGroup = response.getTargetGroupToTargetNativeGroup();
       
       cacheGroupNameToGroup.clear();
       cacheGroupIdToGroup.clear();
@@ -92,9 +95,10 @@ public class GrouperAdobeTargetDao extends GrouperProvisionerTargetDaoBase {
       for (GrouperAdobeGroup grouperAdobeGroup : grouperAdobeGroups) {
         ProvisioningGroup targetGroup = grouperAdobeGroup.toProvisioningGroup();
         results.add(targetGroup);
+        targetGroupToTargetNativeGroup.put(targetGroup, grouperAdobeGroup);
       }
 
-      return new TargetDaoRetrieveAllGroupsResponse(results);
+      return response;
     } finally {
       this.addTargetDaoTimingInfo(
           new TargetDaoTimingInfo("retrieveAllGroups", startNanos));
@@ -121,8 +125,7 @@ public class GrouperAdobeTargetDao extends GrouperProvisionerTargetDaoBase {
 
       TargetDaoRetrieveAllEntitiesResponse targetDaoRetrieveAllEntitiesResponse = new TargetDaoRetrieveAllEntitiesResponse(results);
 
-      Map<ProvisioningEntity, Object> targetEntityToTargetNativeEntity = targetDaoRetrieveAllEntitiesResponse
-           .getTargetEntityToTargetNativeEntity();
+      Map<ProvisioningEntity, Object> targetEntityToTargetNativeEntity = targetDaoRetrieveAllEntitiesResponse.getTargetEntityToTargetNativeEntity();
       for (GrouperAdobeUser grouperAdobeUser : grouperAdobeUsers) {
         ProvisioningEntity targetEntity = grouperAdobeUser.toProvisioningEntity();
         results.add(targetEntity);
@@ -246,8 +249,9 @@ public class GrouperAdobeTargetDao extends GrouperProvisionerTargetDaoBase {
       }
 
       ProvisioningGroup targetGroup = grouperAdobeGroup == null ? null : grouperAdobeGroup.toProvisioningGroup();
-
-      return new TargetDaoRetrieveGroupResponse(targetGroup);
+      TargetDaoRetrieveGroupResponse response = new TargetDaoRetrieveGroupResponse(targetGroup);
+      response.setTargetNativeGroup(grouperAdobeGroup);
+      return response;
 
     } finally {
       this.addTargetDaoTimingInfo(new TargetDaoTimingInfo("retrieveGroup", startNanos));
@@ -704,6 +708,8 @@ public class GrouperAdobeTargetDao extends GrouperProvisionerTargetDaoBase {
       
       List<ProvisioningGroup> targetGroups = targetDaoRetrieveAllGroupsResponse.getTargetGroups();
       
+      Map<ProvisioningGroup,Object> targetGroupToTargetNativeGroups = targetDaoRetrieveAllGroupsResponse.getTargetGroupToTargetNativeGroup();
+      
       targetData.setProvisioningGroups(targetGroups);
       
       boolean loadEntitiesToGrouperTable = this.getGrouperProvisioner().retrieveGrouperProvisioningBehavior().isLoadEntitiesToGrouperTable();
@@ -716,8 +722,10 @@ public class GrouperAdobeTargetDao extends GrouperProvisionerTargetDaoBase {
       List<ProvisioningEntity> targetEntities = new ArrayList<ProvisioningEntity>();
       targetData.setProvisioningEntities(targetEntities);
       
-      Map<ProvisioningEntity, Object> targetEntityToTargetNativeEntity = targetDaoRetrieveAllDataResponse
-           .getTargetEntityToTargetNativeEntity();
+      Map<ProvisioningEntity, Object> targetEntityToTargetNativeEntity = targetDaoRetrieveAllDataResponse.getTargetEntityToTargetNativeEntity();
+      
+      Map<ProvisioningGroup,Object> targetGroupToTargetNativeGroup = targetDaoRetrieveAllDataResponse.getTargetGroupToTargetNativeGroup();
+      targetGroupToTargetNativeGroup.putAll(targetGroupToTargetNativeGroups);
 
       for (GrouperAdobeUser adobeUser: adobeUsers) {
         

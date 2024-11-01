@@ -49,6 +49,20 @@ public class GrouperProvisioningData {
   public Map<ProvisioningEntity, Object> getTargetEntityToTargetNativeEntity() {
     return targetEntityToTargetNativeEntity;
   }
+  
+  /**
+   * map of retrieved group to target native group, optional, only if the target native group is needed later on
+   */
+  private Map<ProvisioningGroup, Object> targetGroupToTargetNativeGroup = Collections.synchronizedMap(new HashMap<ProvisioningGroup, Object>());
+
+  
+  /**
+   * map of retrieved group to target native group, optional, only if the target native group is needed later on
+   * @return
+   */
+  public Map<ProvisioningGroup, Object> getTargetGroupToTargetNativeGroup() {
+    return targetGroupToTargetNativeGroup;
+  }
 
   /**
    * cache json to provisioning group so the json doesnt have to be parsed repeatedly

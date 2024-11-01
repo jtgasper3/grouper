@@ -221,7 +221,6 @@ public class GrouperAdobeProvisionerTest extends GrouperProvisioningBaseTest {
     String adobeConfigId = "adobe";
     AdobeProvisionerTestUtils.configureAdobeProvisioner(new AdobeProvisionerTestConfigInput()
       .assignChangelogConsumerConfigId("adobeProvTestCLC").assignConfigId("adobeProvisioner")
-      .assignBearerTokenExternalSystemConfigId("adobe")
       .assignEntityDeleteType("deleteEntitiesIfNotExistInGrouper")
       .assignGroupDeleteType("deleteGroupsIfGrouperDeleted")
       .assignMembershipDeleteType("deleteMembershipsIfGrouperDeleted")
@@ -321,7 +320,6 @@ public class GrouperAdobeProvisionerTest extends GrouperProvisioningBaseTest {
 
     AdobeProvisionerTestUtils.configureAdobeProvisioner(new AdobeProvisionerTestConfigInput()
       .assignChangelogConsumerConfigId("awsScimProvTestCLC").assignConfigId("awsProvisioner")
-      .assignBearerTokenExternalSystemConfigId("awsConfigId")
       .assignEntityDeleteType("deleteEntitiesIfNotExistInGrouper")
       .assignGroupDeleteType("deleteGroupsIfGrouperDeleted")
       .assignMembershipDeleteType("deleteMembershipsIfGrouperDeleted")
@@ -408,7 +406,6 @@ public class GrouperAdobeProvisionerTest extends GrouperProvisioningBaseTest {
 
     AdobeProvisionerTestUtils.configureAdobeProvisioner(new AdobeProvisionerTestConfigInput()
         .assignChangelogConsumerConfigId("awsScimProvTestCLC").assignConfigId("awsProvisioner")
-        .assignBearerTokenExternalSystemConfigId("awsConfigId")
         .assignEntityDeleteType("deleteEntitiesIfNotExistInGrouper")
         .assignGroupDeleteType("deleteGroupsIfGrouperDeleted")
         .assignMembershipDeleteType("deleteMembershipsIfGrouperDeleted")

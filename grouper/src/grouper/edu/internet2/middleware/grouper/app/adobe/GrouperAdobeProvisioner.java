@@ -1,10 +1,12 @@
 package edu.internet2.middleware.grouper.app.adobe;
 
+import edu.internet2.middleware.grouper.app.azure.AzureProvisioningLoader;
 import edu.internet2.middleware.grouper.app.provisioning.GrouperProvisioner;
 import edu.internet2.middleware.grouper.app.provisioning.GrouperProvisioningBehavior;
 import edu.internet2.middleware.grouper.app.provisioning.GrouperProvisioningBehaviorMembershipType;
 import edu.internet2.middleware.grouper.app.provisioning.GrouperProvisioningConfiguration;
 import edu.internet2.middleware.grouper.app.provisioning.GrouperProvisioningConfigurationValidation;
+import edu.internet2.middleware.grouper.app.provisioning.GrouperProvisioningLoader;
 import edu.internet2.middleware.grouper.app.provisioning.targetDao.GrouperProvisionerTargetDaoBase;
 
 public class GrouperAdobeProvisioner extends GrouperProvisioner {
@@ -27,6 +29,11 @@ public class GrouperAdobeProvisioner extends GrouperProvisioner {
   @Override
   protected Class<? extends GrouperProvisioningConfigurationValidation> grouperProvisioningConfigurationValidationClass() {
     return AdobeProvisoningConfigurationValidation.class;
+  }
+  
+  @Override
+  protected Class<? extends GrouperProvisioningLoader> grouperProvisioningLoaderClass() {
+    return AdobeProvisioningLoader.class;
   }
 
 }

@@ -897,7 +897,603 @@ public enum UpgradeTasks implements UpgradeTasksInterface {
         }
       });
     }
-  };
+  }
+  ,
+  
+ V26{
+    @Override
+    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
+      
+      GrouperSession.internal_callbackRootGrouperSession(new GrouperSessionHandler() {
+        
+        @Override
+        public Object callback(GrouperSession grouperSession) throws GrouperSessionException {
+          
+          try {
+            
+            if (!GrouperDdlUtils.assertTableThere(true, "grouper_prov_adobe_user")) {
+              
+              if (GrouperDdlUtils.isPostgres()) {
+                new GcDbAccess().sql("""
+              CREATE TABLE grouper_prov_adobe_user
+              (    
+                  config_id VARCHAR(50) NOT NULL,
+                  user_id VARCHAR(100) NOT NULL,
+                  email VARCHAR(256) NOT NULL,
+                  username VARCHAR(100),
+                  status VARCHAR(30) NULL,
+                  adobe_type VARCHAR(30) NULL,
+                  firstname VARCHAR(100) NULL,
+                  lastname VARCHAR(100) NULL,
+                  domain VARCHAR(100) NULL,
+                  country VARCHAR(2) NULL,
+                  PRIMARY KEY (config_id, user_id)
+              );                    
+                    """).executeSql();
+                if (otherJobInput != null) {
+                  otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
+                }
+              } else if (GrouperDdlUtils.isOracle()) {
+                new GcDbAccess().sql("""
+              CREATE TABLE grouper_prov_adobe_user
+              (
+                  config_id VARCHAR2(50) NOT NULL,
+                  user_id VARCHAR2(100) NOT NULL,
+                  email VARCHAR2(256) NOT NULL,
+                  username VARCHAR2(100),
+                  status VARCHAR2(30) NULL,
+                  adobe_type VARCHAR2(30) NULL,
+                  firstname VARCHAR2(100) NULL,
+                  lastname VARCHAR2(100) NULL,
+                  domain VARCHAR2(100) NULL,
+                  country VARCHAR2(2) NULL,
+                  PRIMARY KEY (config_id, user_id)
+              );
+                    """).executeSql();
+                if (otherJobInput != null) {
+                  otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
+                }
+
+              } else if (GrouperDdlUtils.isMysql()) {
+                new GcDbAccess().sql("""
+                  CREATE TABLE grouper_prov_adobe_user
+                (
+                    config_id VARCHAR(50) NOT NULL,
+                    user_id VARCHAR(100) NOT NULL,
+                    email VARCHAR(256) NOT NULL,
+                    username VARCHAR(100),
+                    status VARCHAR(30) NULL,
+                    adobe_type VARCHAR(30) NULL,
+                    firstname VARCHAR(100) NULL,
+                    lastname VARCHAR(100) NULL,
+                    domain VARCHAR(100) NULL,
+                    country VARCHAR(2) NULL,
+                    PRIMARY KEY (config_id, user_id)
+                );
+                    """).executeSql();
+                if (otherJobInput != null) {
+                  otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
+                }
+              }
+              if (GrouperDdlUtils.isPostgres() || GrouperDdlUtils.isOracle()) {
+                
+                new GcDbAccess().sql("COMMENT ON TABLE grouper_prov_adobe_user IS 'table to load adobe users into a sql for reporting, provisioning, and deprovisioning'").executeSql();
+                new GcDbAccess().sql("COMMENT ON COLUMN grouper_prov_adobe_user.config_id IS 'adobe config id identifies which adobe external system is being loaded'").executeSql();
+                new GcDbAccess().sql("COMMENT ON COLUMN grouper_prov_adobe_user.user_id IS 'adobe user id for this user (used in web services)'").executeSql();
+                new GcDbAccess().sql("COMMENT ON COLUMN grouper_prov_adobe_user.email IS 'email address'").executeSql();
+                new GcDbAccess().sql("COMMENT ON COLUMN grouper_prov_adobe_user.username IS 'username the user'").executeSql();
+                new GcDbAccess().sql("COMMENT ON COLUMN grouper_prov_adobe_user.status IS 'adobe status for the user'").executeSql();
+                new GcDbAccess().sql("COMMENT ON COLUMN grouper_prov_adobe_user.adobe_type IS 'type for the user'").executeSql();
+                new GcDbAccess().sql("COMMENT ON COLUMN grouper_prov_adobe_user.firstname IS 'first name for the user'").executeSql();
+                new GcDbAccess().sql("COMMENT ON COLUMN grouper_prov_adobe_user.lastname IS 'last name for the user'").executeSql();
+                new GcDbAccess().sql("COMMENT ON COLUMN grouper_prov_adobe_user.domain IS 'domain for the user'").executeSql();
+                new GcDbAccess().sql("COMMENT ON COLUMN grouper_prov_adobe_user.country IS 'country for the user'").executeSql();
+          
+              }
+              if (otherJobInput != null) {
+                otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
+              }
+              
+              if (otherJobInput != null) {
+                otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", added table grouper_prov_adobe_user");
+              }
+            } else {
+              if (otherJobInput != null) {
+                otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", table grouper_prov_adobe_user exists already");
+              }
+            }
+            
+            if (!GrouperDdlUtils.assertTableThere(true, "grouper_prov_adobe_group")) {
+              
+              if (GrouperDdlUtils.isPostgres()) {
+                new GcDbAccess().sql("""
+              CREATE TABLE grouper_prov_adobe_group
+              (
+                  config_id VARCHAR(50) NOT NULL,
+                  group_id BIGINT NOT NULL,
+                  name VARCHAR(2000) NOT NULL,
+                  adobe_type VARCHAR(100) NULL,
+                  product_name VARCHAR(2000) NULL,
+                  member_count BIGINT NULL,
+                  license_quota BIGINT NULL,
+                  PRIMARY KEY (config_id, group_id)
+              );
+                    """).executeSql();
+                if (otherJobInput != null) {
+                  otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
+                }
+              } else if (GrouperDdlUtils.isOracle()) {
+                new GcDbAccess().sql("""
+              CREATE TABLE grouper_prov_adobe_group
+            (
+                config_id VARCHAR2(50) NOT NULL,
+                group_id NUMBER(38) NOT NULL,
+                name VARCHAR2(2000) NOT NULL,
+                adobe_type VARCHAR2(100) NULL,
+                product_name VARCHAR2(2000) NULL,
+                member_count NUMBER(38) NULL,
+                license_quota NUMBER(38) NULL,
+                PRIMARY KEY (config_id, group_id)
+            );
+                    """).executeSql();
+                if (otherJobInput != null) {
+                  otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
+                }
+
+              } else if (GrouperDdlUtils.isMysql()) {
+                new GcDbAccess().sql("""
+                  CREATE TABLE grouper_prov_adobe_group
+                (
+                    config_id VARCHAR(50) NOT NULL,
+                    group_id BIGINT NOT NULL,
+                    name VARCHAR(2000) NOT NULL,
+                    adobe_type VARCHAR(100) NULL,
+                    product_name VARCHAR(2000) NULL,
+                    member_count BIGINT NULL,
+                    license_quota BIGINT NULL,
+                    PRIMARY KEY (config_id, group_id)
+                );
+                    """).executeSql();
+                if (otherJobInput != null) {
+                  otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
+                }
+              }
+              if (GrouperDdlUtils.isPostgres() || GrouperDdlUtils.isOracle()) {
+                new GcDbAccess().sql("COMMENT ON TABLE grouper_prov_adobe_group IS 'table to load adobe groups into a sql for reporting, provisioning, and deprovisioning'").executeSql();
+                new GcDbAccess().sql("COMMENT ON COLUMN grouper_prov_adobe_group.config_id IS 'adobe config id identifies which adobe external system is being loaded'").executeSql();
+                new GcDbAccess().sql("COMMENT ON COLUMN grouper_prov_adobe_group.group_id IS 'adobe group id for this group (used in web services)'").executeSql();
+                new GcDbAccess().sql("COMMENT ON COLUMN grouper_prov_adobe_group.name IS 'group name'").executeSql();
+                new GcDbAccess().sql("COMMENT ON COLUMN grouper_prov_adobe_group.adobe_type IS 'type for the group'").executeSql();
+                new GcDbAccess().sql("COMMENT ON COLUMN grouper_prov_adobe_group.product_name IS 'product name for the group'").executeSql();
+                new GcDbAccess().sql("COMMENT ON COLUMN grouper_prov_adobe_group.member_count IS 'member count for the group'").executeSql();
+                new GcDbAccess().sql("COMMENT ON COLUMN grouper_prov_adobe_group.license_quota IS 'license quota for the group'").executeSql();
+              }
+              if (otherJobInput != null) {
+                otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
+              }
+              
+              if (otherJobInput != null) {
+                otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", added table grouper_prov_adobe_group");
+              }
+            } else {
+              if (otherJobInput != null) {
+                otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", table grouper_prov_adobe_group exists already");
+              }
+            }
+                        
+            if (!GrouperDdlUtils.assertIndexExists("grouper_prov_adobe_user", "grouper_prov_adobe_user_idx1")) {
+              if (GrouperDdlUtils.isPostgres() || GrouperDdlUtils.isOracle()) {
+                new GcDbAccess().sql("CREATE INDEX grouper_prov_adobe_user_idx1 ON grouper_prov_adobe_user (email, config_id)").executeSql();
+                if (otherJobInput != null) {
+                  otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
+                }
+
+              } else if (GrouperDdlUtils.isMysql() ) {
+                new GcDbAccess().sql("CREATE INDEX grouper_prov_adobe_user_idx1 ON grouper_prov_adobe_user (email(100), config_id)").executeSql();
+                if (otherJobInput != null) {
+                  otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
+                }
+              }
+              if (otherJobInput != null) {
+                otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", added index grouper_prov_adobe_user_idx1");
+              }
+            } else {
+              if (otherJobInput != null) {
+                otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", index grouper_prov_azure_user_idx1 exists already");
+              }
+            }
+            
+            if (!GrouperDdlUtils.assertIndexExists("grouper_prov_adobe_user", "grouper_prov_adobe_user_idx2")) {
+              if (GrouperDdlUtils.isPostgres() || GrouperDdlUtils.isOracle()) {
+                new GcDbAccess().sql("CREATE INDEX grouper_prov_adobe_user_idx2 ON grouper_prov_adobe_user (username, config_id)").executeSql();
+                if (otherJobInput != null) {
+                  otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
+                }
+
+              } else if (GrouperDdlUtils.isMysql() ) {
+                new GcDbAccess().sql("CREATE INDEX grouper_prov_adobe_user_idx2 ON grouper_prov_adobe_user (username, config_id)").executeSql();
+                if (otherJobInput != null) {
+                  otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
+                }
+              }
+              if (otherJobInput != null) {
+                otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", added index grouper_prov_adobe_user_idx2");
+              }
+            } else {
+              if (otherJobInput != null) {
+                otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", index grouper_prov_azure_user_idx2 exists already");
+              }
+            }
+            
+            if (!GrouperDdlUtils.assertIndexExists("grouper_prov_adobe_group", "grouper_prov_adobe_group_idx1")) {
+              if (GrouperDdlUtils.isPostgres() || GrouperDdlUtils.isOracle()) {
+                new GcDbAccess().sql("CREATE INDEX grouper_prov_adobe_group_idx1 ON grouper_prov_adobe_group (name, config_id)").executeSql();
+                if (otherJobInput != null) {
+                  otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
+                }
+
+              } else if (GrouperDdlUtils.isMysql() ) {
+                new GcDbAccess().sql("CREATE INDEX grouper_prov_adobe_group_idx1 ON grouper_prov_adobe_group (name(100), config_id)").executeSql();
+                if (otherJobInput != null) {
+                  otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
+                }
+              }
+              if (otherJobInput != null) {
+                otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", added index grouper_prov_adobe_group_idx1");
+              }
+            } else {
+              if (otherJobInput != null) {
+                otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", index grouper_prov_adobe_group_idx1 exists already");
+              }
+            }
+            
+            if (!GrouperDdlUtils.assertTableThere(true, "grouper_prov_adobe_membership")) {
+              
+              if (GrouperDdlUtils.isPostgres()) {
+                new GcDbAccess().sql("""
+              CREATE TABLE grouper_prov_adobe_membership
+              (
+                  config_id VARCHAR(50) NOT NULL,
+                  group_id BIGINT NOT NULL,
+                  user_id VARCHAR(100) NOT NULL,
+                  PRIMARY KEY (config_id, group_id, user_id)
+              );
+
+                    """).executeSql();
+                if (otherJobInput != null) {
+                  otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
+                }
+              } else if (GrouperDdlUtils.isOracle()) {
+                new GcDbAccess().sql("""
+              CREATE TABLE grouper_prov_adobe_membership
+              (
+                  config_id VARCHAR2(50) NOT NULL,
+                  group_id NUMBER(38) NOT NULL,
+                  user_id VARCHAR2(100) NOT NULL,
+                  PRIMARY KEY (config_id, group_id, user_id)
+              );
+                    """).executeSql();
+                if (otherJobInput != null) {
+                  otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
+                }
+
+              } else if (GrouperDdlUtils.isMysql()) {
+                new GcDbAccess().sql("""
+                  CREATE TABLE grouper_prov_adobe_membership
+                  (
+                      config_id VARCHAR(50) NOT NULL,
+                      group_id BIGINT NOT NULL,
+                      user_id VARCHAR(100) NOT NULL,
+                      PRIMARY KEY (config_id, group_id, user_id)
+                  );
+                    """).executeSql();
+                if (otherJobInput != null) {
+                  otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
+                }
+              }
+              if (GrouperDdlUtils.isPostgres() || GrouperDdlUtils.isOracle()) {
+                new GcDbAccess().sql("COMMENT ON TABLE grouper_prov_adobe_membership IS 'table to load adobe memberships into a sql for reporting, provisioning, and deprovisioning'").executeSql();
+                new GcDbAccess().sql("COMMENT ON COLUMN grouper_prov_adobe_membership.config_id IS 'adobe config id identifies which adobe external system is being loaded'").executeSql();
+                new GcDbAccess().sql("COMMENT ON COLUMN grouper_prov_adobe_membership.group_id IS 'adobe group id for this membership'").executeSql();
+                new GcDbAccess().sql("COMMENT ON COLUMN grouper_prov_adobe_membership.user_id IS 'adobe user id for this membership'").executeSql();
+              }
+              if (otherJobInput != null) {
+                otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
+              }
+              
+              if (otherJobInput != null) {
+                otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", added table grouper_prov_adobe_membership");
+              }
+            } else {
+              if (otherJobInput != null) {
+                otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", table grouper_prov_adobe_membership exists already");
+              }
+            }
+            
+            if (!GrouperDdlUtils.assertForeignKeyExists("grouper_prov_adobe_membership", "grouper_prov_adobe_mship_fk1")) { 
+              
+              if (GrouperDdlUtils.isPostgres() || GrouperDdlUtils.isOracle()) {
+                new GcDbAccess().sql("ALTER TABLE  grouper_prov_adobe_membership ADD CONSTRAINT grouper_prov_adobe_mship_fk1 FOREIGN KEY (config_id, group_id) REFERENCES grouper_prov_adobe_group(config_id, group_id) on delete cascade").executeSql();
+                if (otherJobInput != null) {
+                  otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
+                }
+
+              } else if (GrouperDdlUtils.isMysql() ) {
+                new GcDbAccess().sql("ALTER TABLE  grouper_prov_adobe_membership ADD CONSTRAINT grouper_prov_adobe_mship_fk1 FOREIGN KEY (config_id, group_id) REFERENCES grouper_prov_adobe_group(config_id, group_id) on delete cascade").executeSql();
+                if (otherJobInput != null) {
+                  otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
+                }
+              }
+              if (otherJobInput != null) {
+                otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", added foreign key grouper_prov_adobe_mship_fk1");
+              }
+              
+            } else {
+              if (otherJobInput != null) {
+                otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", foreign key grouper_prov_adobe_mship_fk1 exists already");
+              }
+            }
+            
+            if (!GrouperDdlUtils.assertForeignKeyExists("grouper_prov_adobe_membership", "grouper_prov_adobe_mship_fk2")) { 
+              
+              if (GrouperDdlUtils.isPostgres() || GrouperDdlUtils.isOracle()) {
+                new GcDbAccess().sql("ALTER TABLE  grouper_prov_adobe_membership ADD CONSTRAINT grouper_prov_adobe_mship_fk2 FOREIGN KEY (config_id, user_id) REFERENCES grouper_prov_adobe_user(config_id, user_id) on delete cascade").executeSql();
+                if (otherJobInput != null) {
+                  otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
+                }
+
+              } else if (GrouperDdlUtils.isMysql() ) {
+                new GcDbAccess().sql("ALTER TABLE  grouper_prov_adobe_membership ADD CONSTRAINT grouper_prov_adobe_mship_fk2 FOREIGN KEY (config_id, user_id) REFERENCES grouper_prov_adobe_user(config_id, user_id) on delete cascade").executeSql();
+                if (otherJobInput != null) {
+                  otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
+                }
+              }
+              if (otherJobInput != null) {
+                otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", added foreign grouper_prov_adobe_mship_fk2");
+              }
+              
+            } else {
+              if (otherJobInput != null) {
+                otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", foreign key grouper_prov_adobe_mship_fk2 exists already");
+              }
+            }
+
+          } catch (Throwable t) {
+            String message = "Could not perform upgrade task V20 adding tables/foreign keys/indexes for GRP-5625 load azure from provisioner to table!  "
+                + "Skipping this upgrade task, install the tables/foreign keys/indexes manually";
+            LOG.error(message, t);
+            if (otherJobInput != null) {
+              otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", " + message);
+            }
+          }
+          return null;
+        }
+      });
+    }
+  },
+  /**
+   * make sure internal_id is populated in grouper_members and make column not null
+   */
+  V10 {
+    
+    @Override
+    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
+      // do a blank ten so v4 upgrades (which added ten) will get the new stuff
+    }
+  }      
+  ,
+  /**
+   * make sure internal_id is populated in grouper_members and make column not null
+   */
+  V11 {
+    
+    @Override
+    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
+      
+      boolean groupsNullable = GrouperDdlUtils.isColumnNullable("grouper_groups", "internal_id", "name", GrouperCheckConfig.attributeRootStemName() + ":upgradeTasks:upgradeTasksMetadataGroup");
+      boolean fieldsNullable = GrouperDdlUtils.isColumnNullable("grouper_fields", "internal_id", "name", "admins");
+      
+      if (groupsNullable || fieldsNullable) {
+        // ok nulls are allowed so make the change
+        GrouperDaemonDeleteOldRecords.verifyTableIdIndexes(null);
+      }
+      
+      if (groupsNullable) {
+        String sql = null;
+        
+        if (GrouperDdlUtils.isOracle()) {
+          sql = "ALTER TABLE grouper_groups MODIFY (internal_id NOT NULL)";
+        } else if (GrouperDdlUtils.isMysql()) {
+          sql = "ALTER TABLE grouper_groups MODIFY internal_id BIGINT NOT NULL";
+        } else if (GrouperDdlUtils.isPostgres()) {
+          sql = "ALTER TABLE grouper_groups ALTER COLUMN internal_id SET NOT NULL";
+        } else {
+          throw new RuntimeException("Which database are we????");
+        }
+        
+        new GcDbAccess().sql(sql).executeSql();
+      }
+      
+      if (fieldsNullable) {
+        String sql = null;
+
+        if (GrouperDdlUtils.isOracle()) {
+          sql = "ALTER TABLE grouper_fields MODIFY (internal_id NOT NULL)";
+        } else if (GrouperDdlUtils.isMysql()) {
+          sql = "ALTER TABLE grouper_fields MODIFY internal_id BIGINT NOT NULL";
+        } else if (GrouperDdlUtils.isPostgres()) {
+          sql = "ALTER TABLE grouper_fields ALTER COLUMN internal_id SET NOT NULL";
+        } else {
+          throw new RuntimeException("Which database are we????");
+        }
+        
+        new GcDbAccess().sql(sql).executeSql();
+      }
+
+      // cant add foreign key until this is there
+      if (GrouperDdlUtils.isOracle()) {
+        
+        String sql = "ALTER TABLE grouper_fields ADD CONSTRAINT grouper_fie_internal_id_unq unique (internal_id)";
+        
+        if (!GrouperDdlUtils.doesConstraintExistOracle("grouper_fie_internal_id_unq")) {
+          try {
+            new GcDbAccess().sql(sql).executeSql();
+          } catch (Exception e) {
+            if (!GrouperUtil.getFullStackTrace(e).contains("ORA-02261")) {
+              // throw if the exception is anything other than the constraint already exists
+              throw e;
+            }
+          }
+        }
+        
+        sql = "ALTER TABLE grouper_groups ADD CONSTRAINT grouper_grp_internal_id_unq unique (internal_id)";
+        
+        if (!GrouperDdlUtils.doesConstraintExistOracle("grouper_grp_internal_id_unq")) {
+          try {
+            new GcDbAccess().sql(sql).executeSql();
+          } catch (Exception e) {
+            if (!GrouperUtil.getFullStackTrace(e).contains("ORA-02261")) {
+              // throw if the exception is anything other than the constraint already exists
+              throw e;
+            }
+          }
+        }
+
+        sql = "ALTER TABLE grouper_sql_cache_group ADD CONSTRAINT grouper_sql_cache_group1_fk FOREIGN KEY (field_internal_id) REFERENCES grouper_fields(internal_id)";
+        
+        if (!GrouperDdlUtils.doesConstraintExistOracle("grouper_sql_cache_group1_fk")) {
+          try {
+            new GcDbAccess().sql(sql).executeSql();
+          } catch (Exception e) {
+            if (!GrouperUtil.getFullStackTrace(e).contains("ORA-02275")) {
+              // throw if the exception is anything other than the constraint already exists
+              throw e;
+            }
+          }
+        }
+      }
+
+    }
+  }
+  , 
+  /**
+   * make sure internal_id is populated in grouper_members and make column not null
+   */
+  V12 {
+    
+    @Override
+    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
+      
+      if (!GrouperDdlUtils.isColumnNullable("grouper_members", "internal_id", "subject_id", "GrouperSystem")) {
+        return;
+      }
+      
+      // ok nulls are allowed so make the change
+      GrouperDaemonDeleteOldRecords.verifyTableIdIndexes(null);
+      String sql = null;
+      
+      if (GrouperDdlUtils.isOracle()) {
+        sql = "ALTER TABLE grouper_members MODIFY (internal_id NOT NULL)";
+      } else if (GrouperDdlUtils.isMysql()) {
+        sql = "ALTER TABLE grouper_members MODIFY internal_id BIGINT NOT NULL";
+      } else if (GrouperDdlUtils.isPostgres()) {
+        sql = "ALTER TABLE grouper_members ALTER COLUMN internal_id SET NOT NULL";
+      } else {
+        throw new RuntimeException("Which database are we????");
+      }
+      
+      new GcDbAccess().sql(sql).executeSql();
+    }
+  }
+  ,
+  /**
+   * make sure source_internal_id is populated in pit tables (fields/members/groups)
+   */
+  V13 {
+    
+    @Override
+    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {      
+      new GcDbAccess().sql("update grouper_pit_groups  pg set source_internal_id = (select g.internal_id from grouper_groups  g where pg.source_id = g.id) where pg.source_internal_id is null and pg.active='T'").executeSql();
+      new GcDbAccess().sql("update grouper_pit_fields  pf set source_internal_id = (select f.internal_id from grouper_fields  f where pf.source_id = f.id) where pf.source_internal_id is null and pf.active='T'").executeSql();
+      new GcDbAccess().sql("update grouper_pit_members pm set source_internal_id = (select m.internal_id from grouper_members m where pm.source_id = m.id) where pm.source_internal_id is null and pm.active='T'").executeSql();
+    }
+  }
+  ,
+  
+  /**
+   * remove old maintenance jobs
+   */
+  V15 {
+    @Override
+    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {      
+      try {
+        Scheduler scheduler = GrouperLoader.schedulerFactory().getScheduler();
+        List<TriggerKey> triggerKeys = new ArrayList<TriggerKey>();
+        triggerKeys.add(TriggerKey.triggerKey("triggerMaintenance_cleanLogs"));
+        triggerKeys.add(TriggerKey.triggerKey("triggerMaintenance_enabledDisabled"));
+        triggerKeys.add(TriggerKey.triggerKey("triggerMaintenance_Messaging"));
+        triggerKeys.add(TriggerKey.triggerKey("triggerMaintenance_externalSubjCalcFields"));
+        triggerKeys.add(TriggerKey.triggerKey("triggerMaintenance_rules"));
+        
+        for (TriggerKey triggerKey : triggerKeys) {
+          if (scheduler.checkExists(triggerKey)) {
+            scheduler.unscheduleJob(triggerKey);
+            otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", removed quartz trigger " + triggerKey.getName());
+          }
+        }
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+  ,
+  /**
+   * remove old maintenance jobs
+   */
+  V17 {
+    @Override
+    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {      
+      try {
+        Scheduler scheduler = GrouperLoader.schedulerFactory().getScheduler();
+        List<TriggerKey> triggerKeys = new ArrayList<TriggerKey>();
+        triggerKeys.add(TriggerKey.triggerKey("triggerMaintenance_grouperReport"));
+        
+        for (TriggerKey triggerKey : triggerKeys) {
+          if (scheduler.checkExists(triggerKey)) {
+            scheduler.unscheduleJob(triggerKey);
+            otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", removed quartz trigger " + triggerKey.getName());
+          }
+        }
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+  ,
+  /**
+   * remove old maintenance jobs
+   */
+  V18 {
+    @Override
+    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {      
+      try {
+        Scheduler scheduler = GrouperLoader.schedulerFactory().getScheduler();
+
+        for (JobKey jobKey : scheduler.getJobKeys(GroupMatcher.jobGroupEquals("DEFAULT"))) {
+          String jobName = jobKey.getName();
+          if (jobName.startsWith("MAINTENANCE__groupSync__")) {
+            String triggerName = "trigger_" + jobName;
+            scheduler.unscheduleJob(TriggerKey.triggerKey(triggerName));
+            otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", removed quartz trigger " + triggerName);
+          }
+        }
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+  ,
+  ;
   
   /** logger */
   private static final Log LOG = GrouperUtil.getLog(UpgradeTasks.class);
