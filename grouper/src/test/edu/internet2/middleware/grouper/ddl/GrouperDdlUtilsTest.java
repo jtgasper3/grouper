@@ -2250,7 +2250,7 @@ public class GrouperDdlUtilsTest extends GrouperTest {
     assertFalse(GrouperDdlUtils.assertTableThere(true, "grouper_prov_adobe_group"));
     assertFalse(GrouperDdlUtils.assertTableThere(true, "grouper_prov_adobe_membership"));
   
-    UpgradeTasks.V26.updateVersionFromPrevious(null);
+    UpgradeTasks.V14.updateVersionFromPrevious(null);
   
     //lets make sure everything is there on upgrade
     assertTrue(GrouperDdlUtils.assertTableThere(true, "grouper_prov_adobe_user"));
