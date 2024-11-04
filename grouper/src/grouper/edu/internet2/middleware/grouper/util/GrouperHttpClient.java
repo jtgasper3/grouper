@@ -7,7 +7,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -36,7 +38,6 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
@@ -45,6 +46,7 @@ import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -1098,13 +1100,13 @@ public class GrouperHttpClient {
       // Add body
       if (this.body != null){
         if (this.grouperHttpMethod == GrouperHttpMethod.post){
-          ((HttpPost)httpRequestBase).setEntity(new StringEntity((this.body)));
+          ((HttpPost)httpRequestBase).setEntity(newStringEntity(this.body));
         } else if (this.grouperHttpMethod == GrouperHttpMethod.patch){
-          ((HttpPatch)httpRequestBase).setEntity(new StringEntity((this.body)));
+          ((HttpPatch)httpRequestBase).setEntity(newStringEntity(this.body));
         } else if (this.grouperHttpMethod == GrouperHttpMethod.put){
-          ((HttpPut)httpRequestBase).setEntity(new StringEntity((this.body)));
+          ((HttpPut)httpRequestBase).setEntity(newStringEntity(this.body));
         } else if (this.grouperHttpMethod == GrouperHttpMethod.delete){
-          ((GrouperHttpDeleteWithBody)httpRequestBase).setEntity(new StringEntity((this.body)));
+          ((GrouperHttpDeleteWithBody)httpRequestBase).setEntity(newStringEntity(this.body));
         } else {
           throw new RuntimeException("Request body may only be used with POST, PATCH or PUT!");
         }
@@ -1330,6 +1332,59 @@ public class GrouperHttpClient {
         LOG.error("error in http logging", e);
       }
     }
+  }
+
+  /**
+   * look in StringEntity for usage
+   */
+  private ContentType requestBodyCharType;
+  
+  /**
+   * look in StringEntity for usage
+   * @param theRequestBodyCharType
+   * @return this for chaining
+   */
+  public GrouperHttpClient assignRequestBodyCharType(ContentType theRequestBodyCharType) {
+    this.requestBodyCharType = theRequestBodyCharType;
+    return this;
+  }
+  
+  /**
+   * e.g. Consts.ISO_8859_1
+   */
+  private Charset requestBodyCharset;
+
+  /**
+   * e.g. Consts.ISO_8859_1
+   * @param theRequestBodyCharset
+   * @return this for chaining
+   */
+  public GrouperHttpClient assignRequestBodyCharset(Charset theRequestBodyCharset) {
+    this.requestBodyCharset = theRequestBodyCharset;
+    return this;
+  }
+
+  public StringEntity newStringEntity(String theBody) throws UnsupportedEncodingException {
+    if (this.requestBodyCharType != null) {
+      return new StringEntity(theBody, this.requestBodyCharType);
+    }
+    if (this.requestBodyCharset != null) {
+      return new StringEntity(theBody, this.requestBodyCharset);
+    }
+    if (this.headers != null) {
+      for (String headerName : this.headers.keySet()) {
+        if (StringUtils.equalsIgnoreCase("Content-Type", headerName)) {
+          String headerValue = this.headers.get(headerName);
+          
+          // deal with accented characters
+          if (headerValue != null && headerValue.toLowerCase().contains("application/json")) {
+            return new StringEntity(theBody, ContentType.APPLICATION_JSON);
+          }
+          break;
+        }
+      }
+    }
+    return new StringEntity(theBody);
   }
 
   private static Map<Integer, CloseableHttpClient> clients = new HashMap<>();
