@@ -15,31 +15,6 @@ import edu.internet2.middleware.grouper.util.GrouperUtil;
 
 public class AdobeProvisionerConfiguration extends ProvisioningConfiguration {
   
-  public final static Set<String> startWithConfigClassNames = new LinkedHashSet<String>();
-  
-  static {
-    startWithConfigClassNames.add(AdobeProvisioningStartWith.class.getName());
-  }
-  
-  @Override
-  public List<ProvisionerStartWithBase> getStartWithConfigClasses() {
-    
-    List<ProvisionerStartWithBase> result = new ArrayList<ProvisionerStartWithBase>();
-    
-    for (String className: startWithConfigClassNames) {
-      try {
-        Class<ProvisionerStartWithBase> configClass = (Class<ProvisionerStartWithBase>) GrouperUtil.forName(className);
-        ProvisionerStartWithBase config = GrouperUtil.newInstance(configClass);
-        result.add(config);
-      } catch (Exception e) {
-        //TODO
-      }
-    }
-    
-    return result;
-    
-  }
-
   @Override
   public ConfigFileName getConfigFileName() {
     return ConfigFileName.GROUPER_LOADER_PROPERTIES;

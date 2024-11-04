@@ -631,12 +631,18 @@ public enum GrouperProvisioningObjectLogType {
         logMessage.append(objectCount).append(". ");
         if (bean == null) {
           logMessage.append("null");
-        } else if ("gcGrouperSyncGroup".equals(field)) {
+        } else if ("gcGrouperSyncGroup".equals(field) && bean instanceof ProvisioningGroupWrapper) {
           logMessage.append(((ProvisioningGroupWrapper)bean).getGcGrouperSyncGroup().toString());
-        } else if ("gcGrouperSyncMember".equals(field)) {
+        } else if ("gcGrouperSyncMember".equals(field) && bean instanceof ProvisioningEntityWrapper) {
           logMessage.append(((ProvisioningEntityWrapper)bean).getGcGrouperSyncMember().toString());
-        } else if ("gcGrouperSyncMembership".equals(field)) {
+        } else if ("gcGrouperSyncMembership".equals(field) && bean instanceof ProvisioningMembershipWrapper) {
           logMessage.append(((ProvisioningMembershipWrapper)bean).getGcGrouperSyncMembership().toString());
+        } else if ("gcGrouperSyncGroup".equals(field) && bean instanceof GcGrouperSyncGroup) {
+          logMessage.append(bean.toString());
+        } else if ("gcGrouperSyncMember".equals(field) && bean instanceof GcGrouperSyncMember) {
+          logMessage.append(bean.toString());
+        } else if ("gcGrouperSyncMembership".equals(field) && bean instanceof GcGrouperSyncMembership) {
+          logMessage.append(bean.toString());
         } else if ("grouperTargetGroup".equals(field)) {
           ProvisioningGroupWrapper provisioningGroupWrapper = null;
           if (bean instanceof ProvisioningGroupWrapper) {

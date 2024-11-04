@@ -228,6 +228,8 @@ public class GrouperAdobeTargetDao extends GrouperProvisionerTargetDaoBase {
         Long id = GrouperUtil.longValue(targetDaoRetrieveGroupRequest.getSearchAttributeValue());
         if (id != null) {
           
+          grouperAdobeGroup = retrieveGroupById(id);
+          
           Map<Long, GrouperAdobeGroup> groupIdToGroup = cacheGroupIdToGroup.get(Boolean.TRUE);
           
           grouperAdobeGroup = groupIdToGroup == null ? null : groupIdToGroup.get(id);
@@ -376,6 +378,57 @@ public class GrouperAdobeTargetDao extends GrouperProvisionerTargetDaoBase {
     }
   }
 
+  public GrouperAdobeGroup retrieveGroupById(Object id) {
+   
+    if (id == null) {
+      return null;
+    }
+    id = GrouperUtil.longValue(id);
+    
+    Map<Long, GrouperAdobeGroup> groupIdToGroup = cacheGroupIdToGroup.get(Boolean.TRUE);
+    
+    GrouperAdobeGroup grouperAdobeGroup = groupIdToGroup == null ? null : groupIdToGroup.get(id);
+    
+    if (grouperAdobeGroup == null) {
+      
+      GrouperAdobeConfiguration adobeConfiguration = (GrouperAdobeConfiguration) this.getGrouperProvisioner().retrieveGrouperProvisioningConfiguration();
+      String orgId = adobeConfiguration.getOrgId();
+
+      List<GrouperAdobeGroup> allAdobeGroups = GrouperAdobeApiCommands.retrieveAdobeGroups(adobeConfiguration.getAdobeExternalSystemConfigId(), orgId);
+      
+      populateGroupCache(allAdobeGroups);
+      
+      groupIdToGroup = cacheGroupIdToGroup.get(Boolean.TRUE);
+      grouperAdobeGroup = groupIdToGroup.get(id);
+      
+    }
+
+    return grouperAdobeGroup;
+  }
+  
+  public GrouperAdobeGroup retrieveGroupByName(String name) {
+    
+    Map<String, GrouperAdobeGroup> groupNameToGroup = cacheGroupNameToGroup.get(Boolean.TRUE);
+    
+    GrouperAdobeGroup grouperAdobeGroup = groupNameToGroup == null ? null : groupNameToGroup.get(name);
+    
+    if (grouperAdobeGroup == null) {
+      
+      GrouperAdobeConfiguration adobeConfiguration = (GrouperAdobeConfiguration) this.getGrouperProvisioner().retrieveGrouperProvisioningConfiguration();
+      String orgId = adobeConfiguration.getOrgId();
+
+      List<GrouperAdobeGroup> allAdobeGroups = GrouperAdobeApiCommands.retrieveAdobeGroups(adobeConfiguration.getAdobeExternalSystemConfigId(), orgId);
+      
+      populateGroupCache(allAdobeGroups);
+      
+      groupNameToGroup = cacheGroupNameToGroup.get(Boolean.TRUE);
+      grouperAdobeGroup = groupNameToGroup.get(name);
+      
+    }
+
+    return grouperAdobeGroup;
+  }
+  
   @Override
   public TargetDaoUpdateGroupResponse updateGroup(
       TargetDaoUpdateGroupRequest targetDaoUpdateGroupRequest) {
@@ -511,14 +564,18 @@ public class GrouperAdobeTargetDao extends GrouperProvisionerTargetDaoBase {
       
       Set<String> groups = grouperAdobeUser.getGroups();
       List<ProvisioningMembership> provisioningMemberships = new ArrayList<ProvisioningMembership>();
-      for (String groupName: groups) {
-        
-        GrouperAdobeGroup grouperAdobeGroup = cacheGroupNameToGroup.get(Boolean.TRUE).get(groupName);
-        if (grouperAdobeGroup != null) {
-          ProvisioningMembership targetMembership = new ProvisioningMembership(false);
-          targetMembership.setProvisioningGroupId(grouperAdobeGroup.getId().toString());
-          targetMembership.setProvisioningEntityId(targetEntity.getId());
-          provisioningMemberships.add(targetMembership);
+      Map<String, GrouperAdobeGroup> theCacheGroupNameToGroup = cacheGroupNameToGroup.get(Boolean.TRUE);
+
+      if (theCacheGroupNameToGroup != null) {
+        for (String groupName: groups) {
+          
+          GrouperAdobeGroup grouperAdobeGroup = theCacheGroupNameToGroup.get(groupName);
+          if (grouperAdobeGroup != null) {
+            ProvisioningMembership targetMembership = new ProvisioningMembership(false);
+            targetMembership.setProvisioningGroupId(grouperAdobeGroup.getId().toString());
+            targetMembership.setProvisioningEntityId(targetEntity.getId());
+            provisioningMemberships.add(targetMembership);
+          }
         }
       }
       return new TargetDaoRetrieveMembershipsByEntityResponse(provisioningMemberships);

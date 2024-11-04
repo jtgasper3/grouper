@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import edu.internet2.middleware.grouper.app.boxProvisioner.BoxMockServiceHandler;
+import edu.internet2.middleware.grouper.app.externalSystem.WsBearerTokenExternalSystem;
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
 import edu.internet2.middleware.grouper.util.GrouperHttpClient;
 import edu.internet2.middleware.grouper.util.GrouperHttpMethod;
@@ -61,110 +61,16 @@ public class GrouperAdobeApiCommands {
 
   }
   
-  private static ExpirableCache<String, String> configKeyToExpiresOnAndBearerToken = new ExpirableCache<String, String>();
-  
-  /**
-   * get bearer token for adobe config id
-   * @param configId
-   * @return the bearer token
-   */
-  private static String retrieveBearerTokenForAdobeConfigId(Map<String, Object> debugMap, String configId) {
-    
-    String encryptedBearerToken = configKeyToExpiresOnAndBearerToken.get(configId);
-  
-    if (StringUtils.isNotBlank(encryptedBearerToken)) {
-      if (debugMap != null) {
-        debugMap.put("adobeCachedAccessToken", true);
-      }
-      return Morph.decrypt(encryptedBearerToken);
-    }
-    
-    Object[] accessTokenAndExpiry = generateAccessToken(debugMap, configId);
-    
-    String accessToken = GrouperUtil.toStringSafe(accessTokenAndExpiry[0]);
-    int expiresInSeconds = (Integer) accessTokenAndExpiry[1] - 5; // subtracting 5 just in case if there are network delays
-    int timeToLive = expiresInSeconds/60;
-    configKeyToExpiresOnAndBearerToken.put(configId, Morph.encrypt(accessToken), timeToLive - 5);
-    return accessToken;
-  }
-  
-  /**
-   * get access token from adobe
-   * @param debugMap
-   * @param configId
-   * @param scope
-   * @return token in the first index and its expiry in the second index
-   */
-  private static Object[] generateAccessToken(Map<String, Object> debugMap, String configId) {
-    
-    long startedNanos = System.nanoTime();
-    
-    try {
-      // we need to get another one
-      GrouperHttpClient grouperHttpClient = new GrouperHttpClient();
-      
-      final String url = GrouperLoaderConfig.retrieveConfig().propertyValueStringRequired("grouper.wsBearerToken." + configId + ".tokenUrl");
-      
-      final String grantType = GrouperLoaderConfig.retrieveConfig().propertyValueString("grouper.wsBearerToken." + configId + ".grant_type", "client_credentials");
-      final String scope = GrouperLoaderConfig.retrieveConfig().propertyValueString("grouper.wsBearerToken." + configId + ".scope", "openid,AdobeID,user_management_sdk");
-      final String clientId = GrouperLoaderConfig.retrieveConfig().propertyValueStringRequired("grouper.wsBearerToken." + configId + ".clientId");
-      final String clientSecret = GrouperLoaderConfig.retrieveConfig().propertyValueStringRequired("grouper.wsBearerToken." + configId + ".clientSecret");
-      
-      grouperHttpClient.assignGrouperHttpMethod(GrouperHttpMethod.post);
-      grouperHttpClient.assignUrl(url);
-      grouperHttpClient.addUrlParameter("grant_type", grantType);
-      grouperHttpClient.addUrlParameter("client_id", clientId);
-      grouperHttpClient.addUrlParameter("client_secret", clientSecret);
-      grouperHttpClient.addUrlParameter("scope", scope);
-      
-      grouperHttpClient.assignDoNotLogResponseBody(true);
-      grouperHttpClient.assignDoNotLogRequestBody(true);
-      
-      String proxyUrl = GrouperLoaderConfig.retrieveConfig().propertyValueString("grouper.wsBearerToken." + configId + ".proxyUrl");
-      String proxyType = GrouperLoaderConfig.retrieveConfig().propertyValueString("grouper.wsBearerToken." + configId + ".proxyType");
-      
-      grouperHttpClient.assignProxyUrl(proxyUrl);
-      grouperHttpClient.assignProxyType(proxyType);
-      
-     //https://ims-na1.adobelogin.com/ims/token/v2?grant_type=client_credentials&client_id=sfd&client_secret=sdf&scope=openid,AdobeID,user_management_sdk
-      
-//      grouperHttpClient.addBodyParameter("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer");
 
-      int code = -1;
-      String json = null;
-  
-      try {
-        grouperHttpClient.executeRequest();
-        code = grouperHttpClient.getResponseCode();
-        // System.out.println(code + ", " + postMethod.getResponseBodyAsString());
-        
-        json = grouperHttpClient.getResponseBody();
-      } catch (Exception e) {
-        throw new RuntimeException("Error connecting to '" + url + "'", e);
-      }
-  
-      if (code != 200) {
-        throw new RuntimeException("Cant get access token from '" + url + "' " + code + ", " + json);
-      }
-      
-      JsonNode jsonObject = GrouperUtil.jsonJacksonNode(json);
-      int expiresInSeconds = GrouperUtil.jsonJacksonGetInteger(jsonObject, "expires_in");
-      String accessToken = GrouperUtil.jsonJacksonGetString(jsonObject, "access_token");
-      return new Object[] {accessToken, expiresInSeconds};
-      
-    } catch (RuntimeException re) {
-      
-      if (debugMap != null) {
-        debugMap.put("adobeTokenError", GrouperUtil.getFullStackTrace(re));
-      }
-      throw re;
-  
-    } finally {
-      if (debugMap != null) {
-        debugMap.put("adobeTokenTookMillis", (System.nanoTime()-startedNanos)/1000000);
-      }
-    }
-  }
+  /**
+   * 
+   */
+  public static final Set<String> doNotLogParameters = GrouperUtil.toSet("client_secret");
+
+  /**
+   * 
+   */
+  public static final Set<String> doNotLogHeaders = GrouperUtil.toSet("authorization", "x-api-key");
 
   private static JsonNode executeMethod(Map<String, Object> debugMap,
       String httpMethodName, String configId,
@@ -172,11 +78,13 @@ public class GrouperAdobeApiCommands {
 
     GrouperHttpClient grouperHttpCall = new GrouperHttpClient();
     
-    grouperHttpCall.assignDoNotLogHeaders(BoxMockServiceHandler.doNotLogHeaders).assignDoNotLogParameters(BoxMockServiceHandler.doNotLogParameters);
+    grouperHttpCall.assignDoNotLogHeaders(doNotLogHeaders).assignDoNotLogParameters(doNotLogParameters);
 
-    String bearerToken = retrieveBearerTokenForAdobeConfigId(debugMap, configId); 
+    GrouperLoaderConfig grouperLoaderConfig = GrouperLoaderConfig.retrieveConfig();
+
+    WsBearerTokenExternalSystem.attachAuthenticationToHttpClient(grouperHttpCall, configId, grouperLoaderConfig, debugMap);
         
-    String url = GrouperLoaderConfig.retrieveConfig().propertyValueStringRequired("grouper.wsBearerToken." + configId + ".serviceUrl");
+    String url = grouperLoaderConfig.propertyValueStringRequired("grouper.wsBearerToken." + configId + ".serviceUrl");
     
     if (url.endsWith("/")) {
       url = url.substring(0, url.length() - 1);
@@ -192,8 +100,8 @@ public class GrouperAdobeApiCommands {
     grouperHttpCall.assignUrl(url);
     grouperHttpCall.assignGrouperHttpMethod(httpMethodName);
     
-    String proxyUrl = GrouperLoaderConfig.retrieveConfig().propertyValueString("grouperClient.wsBearerToken." + configId + ".proxyUrl");
-    String proxyType = GrouperLoaderConfig.retrieveConfig().propertyValueString("grouperClient.wsBearerToken." + configId + ".proxyType");
+    String proxyUrl = grouperLoaderConfig.propertyValueString("grouperClient.wsBearerToken." + configId + ".proxyUrl");
+    String proxyType = grouperLoaderConfig.propertyValueString("grouperClient.wsBearerToken." + configId + ".proxyType");
     
     if (StringUtils.isNotBlank(proxyUrl)) {
       grouperHttpCall.assignProxyUrl(proxyUrl);
@@ -204,15 +112,9 @@ public class GrouperAdobeApiCommands {
     }
     
     grouperHttpCall.addHeader("Content-Type", "application/json");
-    grouperHttpCall.addHeader("Authorization", "Bearer " + bearerToken);
 
-    String apiKeyHeader = GrouperLoaderConfig.retrieveConfig().propertyValueString("grouperClient.wsBearerToken." + configId + ".apiKeyHeaderName");
-    String apiKeyPassword = GrouperLoaderConfig.retrieveConfig().propertyValueString("grouperClient.wsBearerToken." + configId + ".apiKeyPassword");
-    
-    if (StringUtils.isNotBlank(apiKeyHeader) && StringUtils.isNotBlank(apiKeyPassword)) {      
-      grouperHttpCall.addHeader(apiKeyHeader, apiKeyPassword);
-    }
     grouperHttpCall.assignBody(body);
+    
     grouperHttpCall.setThrottlingCallback(new GrouperHttpThrottlingCallback() {
       
       @Override
@@ -221,10 +123,6 @@ public class GrouperAdobeApiCommands {
         try {
           if (StringUtils.isNotBlank(body) && body.contains("error") && body.contains("429")) {
             
-            // {"type":"error","status":429,"code":"rate_limit_exceeded",
-            // "help_url":"http://developers.box.com/docs/#errors",
-            // "message":"Request rate limit exceeded, please try again later",
-            // "request_id":"j09ok2hkbixiyeko"}
             JsonNode node = GrouperUtil.jsonJacksonNode(body);
             Integer status = GrouperUtil.jsonJacksonGetInteger(node, "status");
             boolean isThrottle = status != null && status == 429;
