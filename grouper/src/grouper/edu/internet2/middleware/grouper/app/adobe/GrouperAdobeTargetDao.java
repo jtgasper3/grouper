@@ -567,7 +567,7 @@ public class GrouperAdobeTargetDao extends GrouperProvisionerTargetDaoBase {
       Map<String, GrouperAdobeGroup> theCacheGroupNameToGroup = cacheGroupNameToGroup.get(Boolean.TRUE);
 
       if (theCacheGroupNameToGroup != null) {
-        for (String groupName: groups) {
+        for (String groupName: GrouperUtil.nonNull(groups)) {
           
           GrouperAdobeGroup grouperAdobeGroup = theCacheGroupNameToGroup.get(groupName);
           if (grouperAdobeGroup != null) {

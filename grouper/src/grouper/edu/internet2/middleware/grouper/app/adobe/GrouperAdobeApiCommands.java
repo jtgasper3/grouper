@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import edu.internet2.middleware.grouper.app.externalSystem.WsBearerTokenExternalSystem;
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
+import edu.internet2.middleware.grouper.misc.GrouperStartup;
 import edu.internet2.middleware.grouper.util.GrouperHttpClient;
 import edu.internet2.middleware.grouper.util.GrouperHttpMethod;
 import edu.internet2.middleware.grouper.util.GrouperHttpThrottlingCallback;
@@ -28,6 +29,8 @@ public class GrouperAdobeApiCommands {
   private static final Log LOG = GrouperUtil.getLog(GrouperAdobeApiCommands.class);
   
   public static void main(String[] args) {
+    
+    GrouperStartup.startup();
     
 //    String configId = "adobeTest";
 //    List<GrouperAdobeGroup> adobeGroups = retrieveAdobeGroups(configId);
@@ -45,6 +48,9 @@ public class GrouperAdobeApiCommands {
 //    System.out.println("userByName: "+userByName);
     
 //    associateUserToGroup("adobe1", "DUP0LW3MHLGSFMGGQAV3", "DGCXPKWT7MJ7WLQT7CMQ");
+    
+    GrouperAdobeUser grouperAdobeUser = retrieveAdobeUser("adobe", "hyzer38@upenn.edu", false, "whatever@AdobeOrg");
+    System.out.println(grouperAdobeUser);
     
   }
 
@@ -780,8 +786,12 @@ public class GrouperAdobeApiCommands {
       int[] returnCode = new int[] { -1 };
       
       JsonNode jsonNode = executeMethod(debugMap, "GET", configId, urlSuffix,
-          GrouperUtil.toSet(200), returnCode, null);
+          GrouperUtil.toSet(200, 404), returnCode, null);
       
+      if (returnCode[0] == 404) {
+        return null;
+      }
+
       String result = GrouperUtil.jsonJacksonGetString(jsonNode, "result");
       if (StringUtils.equals("success", result)) {
         JsonNode userNode = GrouperUtil.jsonJacksonGetNode(jsonNode, "user");
