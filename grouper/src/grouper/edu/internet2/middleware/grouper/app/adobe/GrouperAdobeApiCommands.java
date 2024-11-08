@@ -127,11 +127,11 @@ public class GrouperAdobeApiCommands {
       public boolean setupThrottlingCallback(GrouperHttpClient httpClient) {
         String body = httpClient.getResponseBody();
         try {
-          if (StringUtils.isNotBlank(body) && body.contains("error") && body.contains("429")) {
-            
+          if (StringUtils.isNotBlank(body) && body.contains("error_code") && body.contains("\"429")) {
+            // {"error_code":"429050","message":"Too many requests"}            
             JsonNode node = GrouperUtil.jsonJacksonNode(body);
-            Integer status = GrouperUtil.jsonJacksonGetInteger(node, "status");
-            boolean isThrottle = status != null && status == 429;
+            String errorCode = GrouperUtil.jsonJacksonGetString(node, "error_code");
+            boolean isThrottle = errorCode != null && errorCode.startsWith("429");
             if (isThrottle) {                
               GrouperUtil.mapAddValue(debugMap, "throttleCount", 1);
               return isThrottle;
@@ -737,8 +737,9 @@ public class GrouperAdobeApiCommands {
       
       while (lastPage != true && maxLoops < 100000) { //max users should not be 100,000 * results per page  
         
+        int[] returnCode = new int[] { -1 };
         JsonNode jsonNode = executeMethod(debugMap, "GET", configId, "/users/"+orgId+"/"+maxLoops,
-            GrouperUtil.toSet(200), new int[] { -1 }, null);
+            GrouperUtil.toSet(200), returnCode, null);
         
         maxLoops = maxLoops + 1;
         
