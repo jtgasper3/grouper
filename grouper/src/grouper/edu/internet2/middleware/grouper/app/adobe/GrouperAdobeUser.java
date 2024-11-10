@@ -97,8 +97,8 @@ public class GrouperAdobeUser {
     targetEntity.assignAttributeValue("status", this.status);
     targetEntity.assignAttributeValue("type", this.type);
     
-    targetEntity.assignAttributeValue("firstName", this.firstName);
-    targetEntity.assignAttributeValue("lastName", this.lastName);
+    targetEntity.assignAttributeValue("firstname", this.firstName);
+    targetEntity.assignAttributeValue("lastname", this.lastName);
     
     targetEntity.assignAttributeValue("domain", this.domain);
     targetEntity.assignAttributeValue("country", this.country);
@@ -301,10 +301,10 @@ public class GrouperAdobeUser {
     if (fieldNamesToSet == null || fieldNamesToSet.contains("country")) {      
       GrouperUtil.jsonJacksonAssignString(result, "country", this.country);
     }
-    if (fieldNamesToSet == null || fieldNamesToSet.contains("firstName")) {      
+    if (fieldNamesToSet == null || fieldNamesToSet.contains("firstname")) {      
       GrouperUtil.jsonJacksonAssignString(result, "firstname", this.firstName);
     }
-    if (fieldNamesToSet == null || fieldNamesToSet.contains("lastName")) {      
+    if (fieldNamesToSet == null || fieldNamesToSet.contains("lastname")) {      
       GrouperUtil.jsonJacksonAssignString(result, "lastname", this.lastName);
     }
     if (fieldNamesToSet == null || fieldNamesToSet.contains("id")) {      

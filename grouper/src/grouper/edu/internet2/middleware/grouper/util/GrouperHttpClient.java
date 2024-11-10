@@ -895,6 +895,44 @@ public class GrouperHttpClient {
   }
 
   /**
+   * should the client use the retry-after header.  Set to false if the server is mis-using it
+   */
+  private boolean retryForThrottlingUseRetryAfter = true;
+  
+  /**
+   * should the client use the retry-after header.  Set to false if the server is mis-using it
+   * @return
+   */
+  public boolean isRetryForThrottlingUseRetryAfter() {
+    return retryForThrottlingUseRetryAfter;
+  }
+
+
+  /**
+   * should the client use the retry-after header.  Set to false if the server is mis-using it
+   * @param retryForThrottlingUseRetryAfter
+   */
+  public GrouperHttpClient assignRetryForThrottlingUseRetryAfter(boolean retryForThrottlingUseRetryAfter) {
+    this.retryForThrottlingUseRetryAfter = retryForThrottlingUseRetryAfter;
+    return this;
+  }
+  private boolean retryForThrottlingIsMinutes = false;
+  
+  
+  
+  public boolean isRetryForThrottlingIsMinutes() {
+    return retryForThrottlingIsMinutes;
+  }
+
+
+  
+  public GrouperHttpClient assignRetryForThrottlingIsMinutes(boolean retryForThrottlingIsMinutes) {
+    this.retryForThrottlingIsMinutes = retryForThrottlingIsMinutes;
+    return this;
+  }
+
+
+  /**
    * <pre>Execute a post with the given parameters, set teh code and the response into the call.
    */
   public GrouperHttpClient executeRequest() {
@@ -933,8 +971,16 @@ public class GrouperHttpClient {
         
         long sleepMillis = -1;
         try {
-          if (!StringUtils.isBlank(retryAfterString)) {
-            sleepMillis = (GrouperUtil.longValue(retryAfterString) * 1000) + 5000;
+          if (this.retryForThrottlingUseRetryAfter && !StringUtils.isBlank(retryAfterString)) {
+            sleepMillis = GrouperUtil.longValue(retryAfterString) * 1000;
+            if (this.retryForThrottlingIsMinutes) {
+              sleepMillis *= 60;
+            }
+            sleepMillis += 5000;
+            // dont sleep less than 15 seconds...
+            sleepMillis = Math.max(sleepMillis, 15000);
+            // dont sleep more than 60 minutes...
+            sleepMillis = Math.min(sleepMillis, 60 * 60 * 1000);
           } 
         } catch (Throwable e) {
           // ignore, this might be a date format...

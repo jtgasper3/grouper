@@ -49,8 +49,11 @@ public class GrouperAdobeApiCommands {
     
 //    associateUserToGroup("adobe1", "DUP0LW3MHLGSFMGGQAV3", "DGCXPKWT7MJ7WLQT7CMQ");
     
-    GrouperAdobeUser grouperAdobeUser = retrieveAdobeUser("adobe", "hyzer38@upenn.edu", false, "whatever@AdobeOrg");
-    System.out.println(grouperAdobeUser);
+//    GrouperAdobeUser grouperAdobeUser = retrieveAdobeUser("adobe", "@upenn.edu", false, "whatever@AdobeOrg");
+    associateUserToGroup("adobe", "@upenn.edu", "_org_admin", "whatever@AdobeOrg");
+  
+    System.exit(0);
+//    System.out.println(grouperAdobeUser);
     
   }
 
@@ -59,15 +62,6 @@ public class GrouperAdobeApiCommands {
   }
   
   
-  private static JsonNode executeGetMethod(Map<String, Object> debugMap, String configId,
-      String urlSuffix, int[] returnCode) {
-
-    return executeMethod(debugMap, "GET", configId, urlSuffix,
-        GrouperUtil.toSet(200, 404, 429), returnCode, null);
-
-  }
-  
-
   /**
    * 
    */
@@ -80,7 +74,7 @@ public class GrouperAdobeApiCommands {
 
   private static JsonNode executeMethod(Map<String, Object> debugMap,
       String httpMethodName, String configId,
-      String urlSuffix, Set<Integer> allowedReturnCodes, int[] returnCode, String body) {
+      String urlSuffix, Set<Integer> allowedReturnCodes, int[] returnCode, String bodyParam, String[] returnBody) {
 
     GrouperHttpClient grouperHttpCall = new GrouperHttpClient();
     
@@ -119,27 +113,55 @@ public class GrouperAdobeApiCommands {
     
     grouperHttpCall.addHeader("Content-Type", "application/json");
 
-    grouperHttpCall.assignBody(body);
+    grouperHttpCall.assignBody(bodyParam);
+    
+    grouperHttpCall.setRetryForThrottlingOrNetworkIssuesBackOffMillis(2*60*1000);
+    
+    grouperHttpCall.setRetryForThrottlingOrNetworkIssuesSleepMillis(2*60*1000);
+    
+    grouperHttpCall.assignRetryForThrottlingIsMinutes(true);
+    
+    grouperHttpCall.assignRetryForThrottlingUseRetryAfter(false);
+    
+    grouperHttpCall.setRetryForThrottlingOrNetworkIssues(30);
+
+    String errorJson = "{\"error_code\":\"429050\",\"message\":\"Too many requests\"}";
+
     
     grouperHttpCall.setThrottlingCallback(new GrouperHttpThrottlingCallback() {
       
       @Override
       public boolean setupThrottlingCallback(GrouperHttpClient httpClient) {
-        String body = httpClient.getResponseBody();
+        String throttlingBody = StringUtils.trim(httpClient.getResponseBody());
         try {
-          if (StringUtils.isNotBlank(body) && body.contains("error_code") && body.contains("\"429")) {
+          if (StringUtils.isNotBlank(throttlingBody) && ((throttlingBody.contains("error_code") && throttlingBody.contains("\"429050\"")) || throttlingBody.contains("\"error_code\":\"429"))) {
+            
+            
+            
             // {"error_code":"429050","message":"Too many requests"}            
-            JsonNode node = GrouperUtil.jsonJacksonNode(body);
-            String errorCode = GrouperUtil.jsonJacksonGetString(node, "error_code");
-            boolean isThrottle = errorCode != null && errorCode.startsWith("429");
-            if (isThrottle) {                
-              GrouperUtil.mapAddValue(debugMap, "throttleCount", 1);
-              return isThrottle;
+            // sometimes it includes two jsons, the one above, and the normal one... jackson seems to handle this ok
+            
+            if (throttlingBody.startsWith(errorJson)) {
+              String afterError = StringUtils.trim(throttlingBody.substring(errorJson.length()));
+              // theres a JSON after the json
+              if (StringUtils.startsWith(afterError, "{")) {
+                return false;
+              }
             }
+            
+            
+//            JsonNode node = GrouperUtil.jsonJacksonNode(body);
+//            String errorCode = GrouperUtil.jsonJacksonGetString(node, "error_code");
+//            boolean isThrottle = errorCode != null && errorCode.startsWith("429");
+//            if (isThrottle) {                
+              GrouperUtil.mapAddValue(debugMap, "throttleCount", 1);
+              return true;
+//              return isThrottle;
+//            }
             
           }
         } catch(Exception e) {
-          LOG.error("Error: " + debugMap.get("url") + ", " + grouperHttpCall.getResponseCode() + ", " + body, e);
+          LOG.error("Error: " + debugMap.get("url") + ", " + grouperHttpCall.getResponseCode() + ", " + throttlingBody, e);
         }
       
         boolean isThrottle = grouperHttpCall.getResponseCode() == 429;
@@ -159,6 +181,17 @@ public class GrouperAdobeApiCommands {
       returnCode[0] = code;
       json = grouperHttpCall.getResponseBody();
       
+      if (json.startsWith(errorJson)) {
+        String afterError = StringUtils.trim(json.substring(errorJson.length()));
+        // theres a JSON after the json
+        if (StringUtils.startsWith(afterError, "{")) {
+          json = afterError;
+        }
+      }
+      
+      if (returnBody != null && returnBody.length > 0) {
+        returnBody[0] = json;
+      }
       
     } catch (Exception e) {
       throw new RuntimeException("Error connecting to '" + debugMap.get("url") + "'", e);
@@ -244,7 +277,7 @@ public class GrouperAdobeApiCommands {
       String bodyToSend = GrouperUtil.jsonJacksonToString(finalArrayNode);
       
       JsonNode jsonNode = executeMethod(debugMap, "POST", configId, "/action/" + orgId,
-          GrouperUtil.toSet(200), new int[] { -1 }, bodyToSend);
+          GrouperUtil.toSet(200), new int[] { -1 }, bodyToSend, null);
       
     } catch (RuntimeException re) {
       debugMap.put("exception", GrouperClientUtils.getFullStackTrace(re));
@@ -304,7 +337,7 @@ public class GrouperAdobeApiCommands {
       String bodyToSend = GrouperUtil.jsonJacksonToString(finalArrayNode);
       
       JsonNode jsonNode = executeMethod(debugMap, "POST", configId, "/action/" + orgId,
-          GrouperUtil.toSet(200), new int[] { -1 }, bodyToSend);
+          GrouperUtil.toSet(200), new int[] { -1 }, bodyToSend, null);
 
     } catch (RuntimeException re) {
       debugMap.put("exception", GrouperClientUtils.getFullStackTrace(re));
@@ -355,7 +388,7 @@ public class GrouperAdobeApiCommands {
       
       String bodyToSend = GrouperUtil.jsonJacksonToString(finalArrayNode);
       
-      executeMethod(debugMap, "POST", configId, "/action/" + orgId,GrouperUtil.toSet(200, 404), new int[] { -1 }, bodyToSend);
+      executeMethod(debugMap, "POST", configId, "/action/" + orgId,GrouperUtil.toSet(200, 404), new int[] { -1 }, bodyToSend, null);
 
     } catch (RuntimeException re) {
       debugMap.put("exception", GrouperClientUtils.getFullStackTrace(re));
@@ -384,7 +417,7 @@ public class GrouperAdobeApiCommands {
       while (lastPage != true && maxLoops < 100000) { //max groups should not be 100,000 * results per page  
         
         JsonNode jsonNode = executeMethod(debugMap, "GET", configId, "/groups/"+orgId+"/"+maxLoops,
-            GrouperUtil.toSet(200), new int[] { -1 }, null);
+            GrouperUtil.toSet(200), new int[] { -1 }, null, null);
         
         maxLoops = maxLoops + 1;
         
@@ -612,7 +645,7 @@ public class GrouperAdobeApiCommands {
       String jsonStringToSend = GrouperUtil.jsonJacksonToString(arrayNodeToSend);
 
       JsonNode jsonNode = executeMethod(debugMap, "POST", configId, "/action/"+orgId,
-          GrouperUtil.toSet(200), new int[] { -1 }, jsonStringToSend);
+          GrouperUtil.toSet(200), new int[] { -1 }, jsonStringToSend, null);
       
       GrouperAdobeUser adobeUserAfterInsert = retrieveAdobeUser(configId, grouperAdobeUser.getEmail(), true, orgId);
 
@@ -651,11 +684,11 @@ public class GrouperAdobeApiCommands {
       
       Map<String, String> params = GrouperUtil.toMap();
       
-      if (fieldsToUpdate == null || fieldsToUpdate.contains("firstName")) {
+      if (fieldsToUpdate == null || fieldsToUpdate.contains("firstname")) {
         params.put("firstname", StringUtils.defaultString(grouperAdobeUser.getFirstName()));
       }
       
-      if (fieldsToUpdate == null || fieldsToUpdate.contains("lastName")) {
+      if (fieldsToUpdate == null || fieldsToUpdate.contains("lastname")) {
         params.put("lastname", StringUtils.defaultString(grouperAdobeUser.getLastName()));
       }
       
@@ -704,7 +737,7 @@ public class GrouperAdobeApiCommands {
       String jsonStringToSend = GrouperUtil.jsonJacksonToString(arrayNodeToSend);
 
       JsonNode jsonNode = executeMethod(debugMap, "POST", configId, "/action/"+orgId,
-          GrouperUtil.toSet(200), new int[] { -1 }, jsonStringToSend);
+          GrouperUtil.toSet(200), new int[] { -1 }, jsonStringToSend, null);
       
 
 //      JsonNode groupNode = GrouperUtil.jsonJacksonGetNode(jsonNode, "response");
@@ -738,8 +771,9 @@ public class GrouperAdobeApiCommands {
       while (lastPage != true && maxLoops < 100000) { //max users should not be 100,000 * results per page  
         
         int[] returnCode = new int[] { -1 };
+        String[] returnBody = new String[1];
         JsonNode jsonNode = executeMethod(debugMap, "GET", configId, "/users/"+orgId+"/"+maxLoops,
-            GrouperUtil.toSet(200), returnCode, null);
+            GrouperUtil.toSet(200), returnCode, null, returnBody);
         
         maxLoops = maxLoops + 1;
         
@@ -757,7 +791,7 @@ public class GrouperAdobeApiCommands {
         } else if (StringUtils.equals(result, "Not found")) {
           lastPage = true;
         } else {
-          throw new RuntimeException("Received invalid result value: "+result);
+          throw new RuntimeException("Received invalid result value: "+result + ", " + returnBody[0]);
         }
       }
       
@@ -787,7 +821,7 @@ public class GrouperAdobeApiCommands {
       int[] returnCode = new int[] { -1 };
       
       JsonNode jsonNode = executeMethod(debugMap, "GET", configId, urlSuffix,
-          GrouperUtil.toSet(200, 404), returnCode, null);
+          GrouperUtil.toSet(200, 404), returnCode, null, null);
       
       if (returnCode[0] == 404) {
         return null;
@@ -904,7 +938,7 @@ public class GrouperAdobeApiCommands {
       String jsonStringToSend = GrouperUtil.jsonJacksonToString(arrayNodeToSend);
 
       JsonNode jsonNode = executeMethod(debugMap, "POST", configId, "/action/"+orgId,
-          GrouperUtil.toSet(200), new int[] { -1 }, jsonStringToSend);
+          GrouperUtil.toSet(200), new int[] { -1 }, jsonStringToSend, null);
 
     } catch (RuntimeException re) {
       debugMap.put("exception", GrouperClientUtils.getFullStackTrace(re));
@@ -965,7 +999,7 @@ public class GrouperAdobeApiCommands {
       String jsonStringToSend = GrouperUtil.jsonJacksonToString(arrayNodeToSend);
 
       JsonNode jsonNode = executeMethod(debugMap, "POST", configId, "/action/"+orgId,
-          GrouperUtil.toSet(200), new int[] { -1 }, jsonStringToSend);
+          GrouperUtil.toSet(200), new int[] { -1 }, jsonStringToSend, null);
 
       // {"code": 40004, "message": "Operation failed", "message_detail": "User is already a member of the specified group", "stat": "FAIL"}
     } catch (RuntimeException re) {
@@ -1016,7 +1050,7 @@ public class GrouperAdobeApiCommands {
       String jsonStringToSend = GrouperUtil.jsonJacksonToString(arrayNodeToSend);
 
       JsonNode jsonNode = executeMethod(debugMap, "POST", configId, "/action/"+orgId,
-          GrouperUtil.toSet(200), new int[] { -1 }, jsonStringToSend);
+          GrouperUtil.toSet(200), new int[] { -1 }, jsonStringToSend, null);
 
     } catch (RuntimeException re) {
       debugMap.put("exception", GrouperClientUtils.getFullStackTrace(re));
