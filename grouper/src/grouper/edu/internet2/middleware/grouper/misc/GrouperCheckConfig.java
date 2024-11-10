@@ -3273,6 +3273,8 @@ public class GrouperCheckConfig {
                 .assignAttributeDefType(AttributeDefType.attr)
                 .assignToGroup(true)
                 .assignMultiAssignable(false)
+                .assignSaveMode(SaveMode.INSERT)
+                .assignMultiValued(true)
                 .assignValueType(AttributeDefValueType.string));
 
           }

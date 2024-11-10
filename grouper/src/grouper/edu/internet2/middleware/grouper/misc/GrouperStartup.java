@@ -340,6 +340,8 @@ public class GrouperStartup {
               }
             }
             
+            new GrouperDdlEngine().runUpgradeTasks();
+            
             // we are ready to use the database
             ConfigPropertiesCascadeBase.assignInitted();
             

@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -625,13 +627,17 @@ public class GrouperDdlEngine {
           System.out.println(waitingErrorMessage);
         }
         GrouperUtil.sleep(5000);
-        List<Hib3GrouperDdlWorker> ddlWorkers = HibernateSession.bySqlStatic().listSelect(Hib3GrouperDdlWorker.class, "select * from grouper_ddl_worker", null, null);
-        grouperDdlWorker = GrouperUtil.length(ddlWorkers) > 0 ? ddlWorkers.get(0) : null;
-        if (grouperDdlWorker == null || grouperDdlWorker.getHeartbeat() == null) {
+        List<Hib3GrouperDdlWorker> ddlWorkerRows = HibernateSession.bySqlStatic().listSelect(Hib3GrouperDdlWorker.class, "select * from grouper_ddl_worker", null, null);
+        if (GrouperUtil.length(ddlWorkerRows) > 0) {
+          grouperDdlWorker = ddlWorkerRows.get(0);
+          if (grouperDdlWorker.getHeartbeat() == null) {
+            return false;
+          }
+          if (System.currentTimeMillis() - grouperDdlWorker.getHeartbeat().getTime() > 90000) {
+            throw new RuntimeException("Heartbeat of DDL worker is not updating!!!!");
+          }
+        } else {
           return false;
-        }
-        if (System.currentTimeMillis() - grouperDdlWorker.getHeartbeat().getTime() > 90000) {
-          throw new RuntimeException("Heartbeat of DDL worker is not updating!!!!");
         }
       }
       throw new RuntimeException("DDL updates never completed successfully!");
@@ -698,6 +704,8 @@ public class GrouperDdlEngine {
     }
     GrouperDdl2_5.addDdlWorkerTableViaScript(runScript);
   }
+  
+  public static boolean installedGrouperFromScratchWithRunScript = false;
   
   /**
    * return if up to date
@@ -812,6 +820,9 @@ public class GrouperDdlEngine {
           resources.add("ddl/GrouperDdl_" + objectName + "_install_" + scriptOverrideDatabase + ".sql");
           fromVersions.add(0);
           toVersions.add(javaVersion);
+          if (StringUtils.equals("Grouper", objectName)) {
+            installedGrouperFromScratchWithRunScript = runScript;
+          }  
         } else if ("Grouper".equals(objectName) && dbVersion >= 29) {
           for (int i=dbVersion;i<javaVersion;i++) {
             resources.add("ddl/GrouperDdl_" + objectName + "_" + i + "_upgradeTo_" + (i+1) 
@@ -839,6 +850,7 @@ public class GrouperDdlEngine {
         return true;
       }
       GrouperDdlUtils.runScriptIfShouldAndPrintOutput(script.toString(), runScript);
+      installedGrouperFromScratchWithRunScript = installedGrouperFromScratchWithRunScript && runScript;
       return runScript;
     } finally {
       GrouperDdlUtils.insideBootstrap = false;
@@ -853,6 +865,67 @@ public class GrouperDdlEngine {
 
     }
 
+  }
+  
+  public void runUpgradeTasks() {
+    
+    boolean workToDo = UpgradeTasksJob.isThereWorkToDo(null);
+    if (!workToDo) {
+      return;
+    }
+    
+    this.done = false;
+    GrouperDdlUtils.insideBootstrap = true;
+    
+    Boolean hasResult = waitForOtherJvmsOrLockInDatabase();
+    if (hasResult != null) {
+      // some other jvm is going to run upgrade tasks
+      workToDo = UpgradeTasksJob.isThereWorkToDo(null);
+      if (workToDo) {
+        throw new RuntimeException("There are upgrade tasks to do that should have been done automatically but weren't run for some reason!!");
+      }
+      
+      
+      return;
+    }
+    
+    AttributeDef upgradeTasksAttributeDef = UpgradeTasksJob.grouperUpgradeTasksAttributeDef();
+    if (!upgradeTasksAttributeDef.isMultiValued()) {
+      int currentDbVersion = UpgradeTasksJob.getDBVersion();
+      upgradeTasksAttributeDef.setMultiValued(true);
+      upgradeTasksAttributeDef.store();
+      
+      String groupName = UpgradeTasksJob.grouperUpgradeTasksStemName() + ":" + UpgradeTasksJob.UPGRADE_TASKS_METADATA_GROUP;
+      Group group = GroupFinder.findByName(GrouperSession.staticGrouperSession(), groupName, true);
+      String upgradeTasksVersionName = UpgradeTasksJob.grouperUpgradeTasksStemName() + ":" + UpgradeTasksJob.UPGRADE_TASKS_VERSION_ATTR;
+      
+      for (int i=1; i < currentDbVersion; i++) {
+        if (i > 9) {
+          break;
+        }
+        group.getAttributeValueDelegate().addValue(upgradeTasksVersionName, "" + i);
+      }
+    }
+    
+    try {
+      // see if there are upgrade tasks to run
+      String jobMessageOptional = UpgradeTasksJob.runDaemonStandalone();
+      if (StringUtils.isNotBlank(jobMessageOptional)) {
+        throw new RuntimeException(jobMessageOptional);
+      }
+    } finally {
+      GrouperDdlUtils.insideBootstrap = false;
+      
+      // tell the heartbeat we are done
+      this.done=true;
+      
+      // wait for the heartbeat to return
+      if (heartbeatThread != null) {
+        GrouperUtil.threadJoin(heartbeatThread);
+      }
+
+    }
+    
   }
   
   /**

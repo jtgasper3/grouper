@@ -16,20 +16,31 @@
 
 package edu.internet2.middleware.grouper.app.upgradeTasks;
 
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
 import org.apache.commons.logging.Log;
 import org.quartz.DisallowConcurrentExecution;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
 import edu.internet2.middleware.grouper.GrouperSession;
+import edu.internet2.middleware.grouper.app.loader.GrouperDaemonUtils;
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderStatus;
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderType;
 import edu.internet2.middleware.grouper.app.loader.OtherJobBase;
 import edu.internet2.middleware.grouper.app.loader.db.Hib3GrouperLoaderLog;
+import edu.internet2.middleware.grouper.attr.AttributeDef;
+import edu.internet2.middleware.grouper.attr.finder.AttributeDefFinder;
+import edu.internet2.middleware.grouper.ddl.DdlVersionable;
+import edu.internet2.middleware.grouper.ddl.GrouperDdlUtils;
 import edu.internet2.middleware.grouper.exception.GrouperSessionException;
 import edu.internet2.middleware.grouper.misc.GrouperCheckConfig;
 import edu.internet2.middleware.grouper.misc.GrouperSessionHandler;
+import edu.internet2.middleware.grouper.misc.GrouperVersion;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
+import edu.internet2.middleware.grouperClient.jdbc.GcDbAccess;
 
 /**
  * @author shilen
@@ -93,6 +104,17 @@ public class UpgradeTasksJob extends OtherJobBase {
     });
   }
   
+  public static boolean canRunDdl() {
+    
+    String objectName = "Grouper";
+    int javaVersion = GrouperDdlUtils.retrieveDdlJavaVersion(objectName); 
+    DdlVersionable ddlVersionableJava = GrouperDdlUtils.retieveVersion(objectName, javaVersion);
+    GrouperVersion grouperVersionJava = new GrouperVersion(ddlVersionableJava.getGrouperVersion());
+    
+    boolean autoDdlFor = GrouperDdlUtils.autoDdlFor(grouperVersionJava);
+    return autoDdlFor;
+  }
+  
   /**
    * @see edu.internet2.middleware.grouper.app.loader.OtherJobBase#run(edu.internet2.middleware.grouper.app.loader.OtherJobBase.OtherJobInput)
    */
@@ -103,23 +125,74 @@ public class UpgradeTasksJob extends OtherJobBase {
     Group group = GroupFinder.findByName(GrouperSession.staticGrouperSession(), groupName, true);
     String upgradeTasksVersionName = grouperUpgradeTasksStemName() + ":" + UpgradeTasksJob.UPGRADE_TASKS_VERSION_ATTR;
     
-    int oldDBVersion = getDBVersion();
-    int newDBVersion = UpgradeTasks.currentVersion();
+    Set<Integer> sortedOldDbVersions = getDBVersions();
     
-    for (int version = oldDBVersion + 1; version <= newDBVersion; version++) {
-      String enumName = "V" + version;
-      UpgradeTasksInterface task = Enum.valueOf(UpgradeTasks.class, enumName);
-      task.updateVersionFromPrevious(otherJobInput);
-      group.getAttributeValueDelegate().assignValue(upgradeTasksVersionName, "" + version);
+    boolean isThereWorkToDo = isThereWorkToDo(sortedOldDbVersions);
+    
+    if (isThereWorkToDo) {
       
-      LOG.info("Upgraded to version " + enumName);
+      int highestEnumVersion = UpgradeTasks.currentVersion();
+      
+      for (Integer version = 1; version <= highestEnumVersion; version++) {
+    
+        GrouperDaemonUtils.stopProcessingIfJobPaused();
+        
+        if (sortedOldDbVersions.contains(version)) {
+          // version is already there; skip it
+        } else {
+          String enumName = "V" + version;
+          UpgradeTasks task = GrouperUtil.enumValueOfIgnoreCase(UpgradeTasks.class, enumName, false, false);
+          if (task != null ) {         
+            
+            boolean upgradeTaskIsDdl = task.upgradeTaskIsDdl();
+            boolean doesUpgradeTaskHaveDdlWorkToDo = task.doesUpgradeTaskHaveDdlWorkToDo();
+            boolean doTask = true;
+            
+            if (upgradeTaskIsDdl && !doesUpgradeTaskHaveDdlWorkToDo) {
+              doTask = false;
+            }
+            
+            if (upgradeTaskIsDdl && doesUpgradeTaskHaveDdlWorkToDo && !canRunDdl()) {
+              throw new RuntimeException("There's DDL work to do that has been configured not to be automatic but upgrade task number "+ version + " has not been done manually yet.") ;
+            }
+            
+            if (doTask) {
+              task.updateVersionFromPrevious(otherJobInput);
+              group.getAttributeValueDelegate().addValue(upgradeTasksVersionName, "" + version);
+              LOG.info("Upgraded to version " + enumName);
+              otherJobInput.getHib3GrouperLoaderLog().appendJobMessage("Upgraded to version "+enumName + ". \n");
+            }
+           
+          }
+        }
+      }
+      
     }
     
-    otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(".  Finished running job, previousVersion=" + oldDBVersion + ", currentVersion=" + newDBVersion);
     otherJobInput.getHib3GrouperLoaderLog().store();
 
     LOG.info("UpgradeTasksJob finished successfully.");
     return null;
+  }
+  
+  public static boolean isThereWorkToDo(Set<Integer> sortedOldDbVersions) {
+    
+    if (sortedOldDbVersions == null) {
+      sortedOldDbVersions = getDBVersions();
+    }
+    
+    int highestEnumVersion = UpgradeTasks.currentVersion();
+    
+    GrouperDaemonUtils.stopProcessingIfJobPaused();
+    
+    for (Integer version = 1; version <= highestEnumVersion; version++) {
+      
+      if (!sortedOldDbVersions.contains(version)) {
+        return true;
+      }
+    }
+    
+    return false;
   }
   
   /**
@@ -130,13 +203,43 @@ public class UpgradeTasksJob extends OtherJobBase {
     return GrouperCheckConfig.attributeRootStemName() + ":upgradeTasks";
   }
   
+  public static AttributeDef grouperUpgradeTasksAttributeDef() {
+    String upgradeTasksDefName = grouperUpgradeTasksStemName() + ":" + UpgradeTasksJob.UPGRADE_TASKS_DEF;
+    return AttributeDefFinder.findByName(upgradeTasksDefName, true);
+  }
+  
   public static int getDBVersion() {
     String groupName = grouperUpgradeTasksStemName() + ":" + UpgradeTasksJob.UPGRADE_TASKS_METADATA_GROUP;
     Group group = GroupFinder.findByName(GrouperSession.staticGrouperSession(), groupName, true);
     String upgradeTasksVersionName = grouperUpgradeTasksStemName() + ":" + UpgradeTasksJob.UPGRADE_TASKS_VERSION_ATTR;
+    
     String versionString = group.getAttributeValueDelegate().retrieveValueString(upgradeTasksVersionName);
     
-    int oldDBVersion = Integer.parseInt(versionString);  
+    int oldDBVersion = GrouperUtil.intValue(versionString, 0);
     return oldDBVersion;
+  }
+  
+  public static Set<Integer> getDBVersions() {
+    Set<Integer> result = new TreeSet<Integer>();
+    try {
+      List<String> versionsAlreadyUpgraded = new GcDbAccess().sql("""
+          select value_string from grouper_aval_asn_group_v gaagv where group_name = ?
+          and attribute_def_name_name = ?
+          """)
+          .addBindVar(GrouperCheckConfig.attributeRootStemName() + ":attribute:upgradeTasks:upgradeTasksMetadataGroup")
+          .addBindVar(GrouperCheckConfig.attributeRootStemName() + ":attribute:upgradeTasks:upgradeTasksVersion")
+          .selectList(String.class);
+      
+      for (String existingVersion: GrouperUtil.nonNull(versionsAlreadyUpgraded)) {
+        try {          
+          result.add(GrouperUtil.intValue(existingVersion, 0));
+        } catch (Exception e) {
+          LOG.error("Invalid upgrade version: '"+existingVersion+"'", e);
+        }
+      }
+    } catch (Exception e) {
+      LOG.error("cannot find completed upgraded tasks", e);
+    }
+    return result;
   }
 }
