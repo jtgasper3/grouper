@@ -420,12 +420,13 @@ public class UpgradeTaskV14 implements UpgradeTasksInterface {
           }
 
         } catch (Throwable t) {
-          String message = "Could not perform upgrade task V20 adding tables/foreign keys/indexes for GRP-5625 load azure from provisioner to table!  "
+          String message = "Could not perform upgrade task V14 adding tables/foreign keys/indexes for GRP-5625 load azure from provisioner to table!  "
               + "Skipping this upgrade task, install the tables/foreign keys/indexes manually";
           LOG.error(message, t);
           if (otherJobInput != null) {
             otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", " + message);
           }
+          throw new RuntimeException(message, t);
         }
         return null;
       }

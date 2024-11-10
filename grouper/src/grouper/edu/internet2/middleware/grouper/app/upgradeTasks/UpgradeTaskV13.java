@@ -156,6 +156,7 @@ public class UpgradeTaskV13 implements UpgradeTasksInterface {
           if (otherJobInput != null) {
             otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(", " + message);
           }
+          throw new RuntimeException(message, t);
         }
         return null;
       }

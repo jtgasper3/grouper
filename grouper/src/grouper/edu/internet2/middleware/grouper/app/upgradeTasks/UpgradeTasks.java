@@ -20,15 +20,9 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 
-import edu.internet2.middleware.grouper.GrouperSession;
 import edu.internet2.middleware.grouper.app.loader.OtherJobBase.OtherJobInput;
-import edu.internet2.middleware.grouper.ddl.DdlVersionable;
 import edu.internet2.middleware.grouper.ddl.GrouperDdlUtils;
-import edu.internet2.middleware.grouper.exception.GrouperSessionException;
-import edu.internet2.middleware.grouper.misc.GrouperSessionHandler;
-import edu.internet2.middleware.grouper.misc.GrouperVersion;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
-import edu.internet2.middleware.grouperClient.jdbc.GcDbAccess;
 
 /**
  * @author shilen
@@ -118,6 +112,87 @@ public enum UpgradeTasks implements UpgradeTasksInterface {
     
   }
   ,
+<<<<<<< GROUPER_4_BRANCH
+=======
+  V21 {
+    @Override
+    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
+      new UpgradeTaskV21().updateVersionFromPrevious(otherJobInput);
+    }
+
+    @Override
+    public boolean doesUpgradeTaskHaveDdlWorkToDo() {
+      return new UpgradeTaskV21().doesUpgradeTaskHaveDdlWorkToDo();
+    }
+
+    @Override
+    public boolean upgradeTaskIsDdl() {
+      return true;
+    }
+    
+  }
+  ,
+  V22 {
+    @Override
+    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
+      new UpgradeTaskV22().updateVersionFromPrevious(otherJobInput);
+    }
+
+    @Override
+    public boolean doesUpgradeTaskHaveDdlWorkToDo() {
+      return new UpgradeTaskV22().doesUpgradeTaskHaveDdlWorkToDo();
+    }
+
+    @Override
+    public boolean upgradeTaskIsDdl() {
+      return true;
+    }
+    
+  }
+  ,
+  V23{
+    @Override
+    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
+      new UpgradeTaskV23().updateVersionFromPrevious(otherJobInput);
+    }
+  }
+  ,
+  V24 {
+    @Override
+    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
+      new UpgradeTaskV24().updateVersionFromPrevious(otherJobInput);
+    }
+
+    @Override
+    public boolean doesUpgradeTaskHaveDdlWorkToDo() {
+      return new UpgradeTaskV24().doesUpgradeTaskHaveDdlWorkToDo();
+    }
+
+    @Override
+    public boolean upgradeTaskIsDdl() {
+      return true;
+    }
+    
+  }
+  ,
+  V25 {
+    @Override
+    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
+      new UpgradeTaskV25().updateVersionFromPrevious(otherJobInput);
+    }
+    
+    @Override
+    public boolean doesUpgradeTaskHaveDdlWorkToDo() {
+      return new UpgradeTaskV25().doesUpgradeTaskHaveDdlWorkToDo();
+    }
+
+    @Override
+    public boolean upgradeTaskIsDdl() {
+      return true;
+    }
+    
+  },
+>>>>>>> 9a52280 GRP-5796: throw runtime exception when upgrade tasks fail
   V9{
     
     @Override
@@ -265,10 +340,6 @@ public enum UpgradeTasks implements UpgradeTasksInterface {
       currentVersion = max;
     }
     return currentVersion;
-  }
-  
-  public boolean requiresEmptyChangelog() {
-    return false;
   }
   
   public boolean doesUpgradeTaskHaveDdlWorkToDo() {
