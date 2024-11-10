@@ -27,4 +27,8 @@ public interface UpgradeTasksInterface {
    * update to next version
    */
   public void updateVersionFromPrevious(OtherJobInput otherJobInput);
+  
+  public default boolean doesUpgradeTaskHaveDdlWorkToDo() {
+    return false;
+  }
 }

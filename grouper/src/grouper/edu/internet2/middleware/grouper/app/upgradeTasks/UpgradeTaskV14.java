@@ -15,6 +15,54 @@ public class UpgradeTaskV14 implements UpgradeTasksInterface {
   /** logger */
   private static final Log LOG = GrouperUtil.getLog(UpgradeTaskV14.class);
   
+  
+  
+  @Override
+  public boolean doesUpgradeTaskHaveDdlWorkToDo() {
+    return (boolean) GrouperSession.internal_callbackRootGrouperSession(new GrouperSessionHandler() {
+      
+      @Override
+      public Object callback(GrouperSession grouperSession) throws GrouperSessionException {
+          
+        if (!GrouperDdlUtils.assertTableThere(true, "grouper_prov_adobe_user")) {
+          return true;
+        }
+        
+        if (!GrouperDdlUtils.assertTableThere(true, "grouper_prov_adobe_group")) {
+          return true;
+        }
+                    
+        if (!GrouperDdlUtils.assertIndexExists("grouper_prov_adobe_user", "grouper_prov_adobe_user_idx1")) {
+          return true;
+        }
+
+        if (!GrouperDdlUtils.assertIndexExists("grouper_prov_adobe_user", "grouper_prov_adobe_user_idx2")) {
+          return true;
+        }
+          
+        if (!GrouperDdlUtils.assertIndexExists("grouper_prov_adobe_group", "grouper_prov_adobe_group_idx1")) {
+          return true;
+        }
+        
+        if (!GrouperDdlUtils.assertTableThere(true, "grouper_prov_adobe_membership")) {
+          return true;
+        }
+          
+        if (!GrouperDdlUtils.assertForeignKeyExists("grouper_prov_adobe_membership", "grouper_prov_adobe_mship_fk1")) { 
+          return true;
+        }
+          
+        if (!GrouperDdlUtils.assertForeignKeyExists("grouper_prov_adobe_membership", "grouper_prov_adobe_mship_fk2")) { 
+          return true;
+        }
+            
+        return false;
+      }
+    });
+  }
+
+
+
   @Override
   public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
     GrouperSession.internal_callbackRootGrouperSession(new GrouperSessionHandler() {

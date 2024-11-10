@@ -14,6 +14,39 @@ public class UpgradeTaskV10 implements UpgradeTasksInterface {
   
   /** logger */
   private static final Log LOG = GrouperUtil.getLog(UpgradeTaskV10.class);
+  
+
+  @Override
+  public boolean doesUpgradeTaskHaveDdlWorkToDo() {
+    
+    return (boolean) GrouperSession.internal_callbackRootGrouperSession(new GrouperSessionHandler() {
+      
+      @Override
+      public Object callback(GrouperSession grouperSession) throws GrouperSessionException {
+    
+          if (!GrouperDdlUtils.assertIndexExists("grouper_loader_log", "grouper_loader_log_temp_st_idx")) {
+            return true;
+          }
+
+          if (!GrouperDdlUtils.assertIndexExists("grouper_loader_log", "grouper_loader_log_temp_s2_idx")) {
+            return true;
+          }
+          
+          if (!GrouperDdlUtils.assertIndexExists("grouper_loader_log", "grouper_loader_log_temp_s3_idx")) {
+            return true;
+          }
+           
+          if (!GrouperDdlUtils.assertIndexExists("grouper_loader_log", "grouper_loader_log_temp_s4_idx")) {
+            return true;
+          }
+        
+        return false;
+      }
+    });
+    
+  }
+
+
 
   @Override
   public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
