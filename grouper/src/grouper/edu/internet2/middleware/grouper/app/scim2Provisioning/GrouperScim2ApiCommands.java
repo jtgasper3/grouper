@@ -55,7 +55,7 @@ public class GrouperScim2ApiCommands {
 //        System.out.println(grouperScim2User);
 //      }
     
-      GrouperScim2User grouperScimUser = retrieveScimUser("atlassianCloudSso", null, "id", "eec55825-add9-4bc8-8dce-def0eb4422b3", null);
+      GrouperScim2User grouperScimUser = retrieveScimUser("robinProd", null, "userName", "mchyzer", null);
       System.out.println(grouperScimUser);
     
 //      deleteScimUser("githubLocal", "49dbdc83e0744a68bd565ee9e2780e38");
@@ -1427,10 +1427,12 @@ public class GrouperScim2ApiCommands {
       Set<String> entityIds = new HashSet<>();
       if (groupNode.has("members")) {
         ArrayNode membersNode = GrouperUtil.jsonJacksonGetArrayNode(groupNode, "members");
-        for (int membersIndex=0; membersIndex<membersNode.size(); membersIndex++) {
-          JsonNode singleMemberNode = membersNode.get(membersIndex);
-          String entityId = GrouperUtil.jsonJacksonGetString(singleMemberNode, "value");
-          entityIds.add(entityId);
+        if (membersNode != null) {
+          for (int membersIndex=0; membersIndex<membersNode.size(); membersIndex++) {
+            JsonNode singleMemberNode = membersNode.get(membersIndex);
+            String entityId = GrouperUtil.jsonJacksonGetString(singleMemberNode, "value");
+            entityIds.add(entityId);
+          }
         }
       }
       groupIdToMembershipEntityIds.put(grouperScimGroup.getId(), entityIds);
