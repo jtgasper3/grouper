@@ -340,8 +340,6 @@ public class GrouperStartup {
               }
             }
             
-            new GrouperDdlEngine().runUpgradeTasks();
-            
             // we are ready to use the database
             ConfigPropertiesCascadeBase.assignInitted();
             
@@ -349,6 +347,8 @@ public class GrouperStartup {
               //make sure configuration is ok
               GrouperCheckConfig.checkConfig();
             }
+            
+            new GrouperDdlEngine().runUpgradeTasks();
             
             //startup hooks
             GrouperHooksUtils.fireGrouperStartupHooksIfNotFiredAlready();

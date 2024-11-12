@@ -226,8 +226,8 @@ public class UpgradeTasksJob extends OtherJobBase {
           select value_string from grouper_aval_asn_group_v gaagv where group_name = ?
           and attribute_def_name_name = ?
           """)
-          .addBindVar(GrouperCheckConfig.attributeRootStemName() + ":attribute:upgradeTasks:upgradeTasksMetadataGroup")
-          .addBindVar(GrouperCheckConfig.attributeRootStemName() + ":attribute:upgradeTasks:upgradeTasksVersion")
+          .addBindVar(GrouperCheckConfig.attributeRootStemName() + ":upgradeTasks:upgradeTasksMetadataGroup")
+          .addBindVar(GrouperCheckConfig.attributeRootStemName() + ":upgradeTasks:upgradeTasksVersion")
           .selectList(String.class);
       
       for (String existingVersion: GrouperUtil.nonNull(versionsAlreadyUpgraded)) {

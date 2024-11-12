@@ -192,7 +192,16 @@ public enum UpgradeTasks implements UpgradeTasksInterface {
     }
     
   },
+<<<<<<< GROUPER_4_BRANCH
 >>>>>>> 9a52280 GRP-5796: throw runtime exception when upgrade tasks fail
+=======
+  V26 {
+    @Override
+    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
+      
+    }
+  },
+>>>>>>> c7a4837 GRP-5796: Fix upgrade tasks issues
   V9{
     
     @Override
