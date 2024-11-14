@@ -201,7 +201,47 @@ public enum UpgradeTasks implements UpgradeTasksInterface {
       
     }
   },
+<<<<<<< GROUPER_4_BRANCH
 >>>>>>> c7a4837 GRP-5796: Fix upgrade tasks issues
+=======
+  V27 {
+    @Override
+    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
+      new UpgradeTaskV27().updateVersionFromPrevious(otherJobInput);
+    }
+    
+    @Override
+    public boolean doesUpgradeTaskHaveDdlWorkToDo() {
+      return new UpgradeTaskV27().doesUpgradeTaskHaveDdlWorkToDo();
+    }
+
+    @Override
+    public boolean upgradeTaskIsDdl() {
+      return true;
+    }
+    
+    @Override
+    public boolean runOnNewInstall() {
+      return true;
+    }
+  },
+  V28 {
+    @Override
+    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
+      new UpgradeTaskV28().updateVersionFromPrevious(otherJobInput);
+    }
+    
+    @Override
+    public boolean doesUpgradeTaskHaveDdlWorkToDo() {
+      return new UpgradeTaskV28().doesUpgradeTaskHaveDdlWorkToDo();
+    }
+
+    @Override
+    public boolean upgradeTaskIsDdl() {
+      return true;
+    }
+  },
+>>>>>>> db7b372 GRP-5822: DDL updates for timestamp functions and sql cache dependency tables (commit 2)
   V9{
     
     @Override

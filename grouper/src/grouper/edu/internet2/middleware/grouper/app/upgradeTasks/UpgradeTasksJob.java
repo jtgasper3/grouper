@@ -34,6 +34,7 @@ import edu.internet2.middleware.grouper.app.loader.db.Hib3GrouperLoaderLog;
 import edu.internet2.middleware.grouper.attr.AttributeDef;
 import edu.internet2.middleware.grouper.attr.finder.AttributeDefFinder;
 import edu.internet2.middleware.grouper.ddl.DdlVersionable;
+import edu.internet2.middleware.grouper.ddl.GrouperDdlEngine;
 import edu.internet2.middleware.grouper.ddl.GrouperDdlUtils;
 import edu.internet2.middleware.grouper.exception.GrouperSessionException;
 import edu.internet2.middleware.grouper.misc.GrouperCheckConfig;
@@ -148,19 +149,28 @@ public class UpgradeTasksJob extends OtherJobBase {
             boolean doesUpgradeTaskHaveDdlWorkToDo = task.doesUpgradeTaskHaveDdlWorkToDo();
             boolean doTask = true;
             
-            if (upgradeTaskIsDdl && !doesUpgradeTaskHaveDdlWorkToDo) {
-              doTask = false;
-            }
-            
-            if (upgradeTaskIsDdl && doesUpgradeTaskHaveDdlWorkToDo && !canRunDdl()) {
-              throw new RuntimeException("There's DDL work to do that has been configured not to be automatic but upgrade task number "+ version + " has not been done manually yet.") ;
+            if (GrouperDdlEngine.installedGrouperFromScratchWithRunScript) {
+              if (!task.runOnNewInstall()) {
+                doTask = false;
+                
+                group.getAttributeValueDelegate().addValue(upgradeTasksVersionName, "" + version);
+                otherJobInput.getHib3GrouperLoaderLog().appendJobMessage("Skipping upgrade due to new install to version "+enumName + ". \n");
+              }
+            } else {
+              if (upgradeTaskIsDdl && !doesUpgradeTaskHaveDdlWorkToDo) {
+                doTask = false;
+              }
+              
+              if (upgradeTaskIsDdl && doesUpgradeTaskHaveDdlWorkToDo && !canRunDdl()) {
+                throw new RuntimeException("There's DDL work to do that has been configured not to be automatic but upgrade task number "+ version + " has not been done manually yet.") ;
+              }
             }
             
             if (doTask) {
               task.updateVersionFromPrevious(otherJobInput);
               group.getAttributeValueDelegate().addValue(upgradeTasksVersionName, "" + version);
               LOG.info("Upgraded to version " + enumName);
-              otherJobInput.getHib3GrouperLoaderLog().appendJobMessage("Upgraded to version "+enumName + ". \n");
+              otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(" Upgraded to version "+enumName + ". \n");
             }
            
           }

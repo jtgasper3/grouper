@@ -888,7 +888,11 @@ public class GrouperDdlEngine {
       
       return;
     }
+<<<<<<< GROUPER_4_BRANCH
     
+=======
+        
+>>>>>>> db7b372 GRP-5822: DDL updates for timestamp functions and sql cache dependency tables (commit 2)
     AttributeDef upgradeTasksAttributeDef = UpgradeTasksJob.grouperUpgradeTasksAttributeDef();
     if (!upgradeTasksAttributeDef.isMultiValued()) {
       int currentDbVersion = UpgradeTasksJob.getDBVersion();

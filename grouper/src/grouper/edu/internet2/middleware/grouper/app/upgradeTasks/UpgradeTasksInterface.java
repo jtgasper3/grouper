@@ -31,4 +31,8 @@ public interface UpgradeTasksInterface {
   public default boolean doesUpgradeTaskHaveDdlWorkToDo() {
     return false;
   }
+  
+  public default boolean runOnNewInstall() {
+    return false;
+  }
 }
