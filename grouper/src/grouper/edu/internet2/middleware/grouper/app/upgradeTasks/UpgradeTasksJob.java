@@ -17,6 +17,7 @@
 package edu.internet2.middleware.grouper.app.upgradeTasks;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -106,12 +107,18 @@ public class UpgradeTasksJob extends OtherJobBase {
           }
           hib3GrouperLoaderLog.setEndedTime(new Timestamp(System.currentTimeMillis()));
           hib3GrouperLoaderLog.store();
+          LOG.warn("Success: upgrade task output: "+hib3GrouperLoaderLog.getJobMessage());
+          System.out.println("Success: upgrade task output: "+hib3GrouperLoaderLog.getJobMessage());
         } catch (Exception e) {
+          LOG.error("Error on upgrade tasks: "+hib3GrouperLoaderLog.getJobMessage(), e);
+          System.out.println("Error on upgrade tasks: "+hib3GrouperLoaderLog.getJobMessage());
+          e.printStackTrace();
+          hib3GrouperLoaderLog.setJobMessage(GrouperUtil.getFullStackTrace(e));
           hib3GrouperLoaderLog.setStatus(GrouperLoaderStatus.ERROR.name());
           hib3GrouperLoaderLog.setEndedTime(new Timestamp(System.currentTimeMillis()));
           hib3GrouperLoaderLog.store();
         }
-        
+  
         if (GrouperLoaderStatus.valueOfIgnoreCase(hib3GrouperLoaderLog.getStatus(), true).isError()) {
           return hib3GrouperLoaderLog.getJobMessage();
         }
@@ -208,6 +215,9 @@ public class UpgradeTasksJob extends OtherJobBase {
         }
       }
       
+    } else {
+      int highestEnumVersion = UpgradeTasks.currentVersion();
+      otherJobInput.getHib3GrouperLoaderLog().setTotalCount(highestEnumVersion);
     }
     
     otherJobInput.getHib3GrouperLoaderLog().store();
@@ -277,7 +287,7 @@ public class UpgradeTasksJob extends OtherJobBase {
         }
       }
     } catch (Exception e) {
-      LOG.error("cannot find completed upgraded tasks", e);
+      LOG.info("cannot find completed upgraded tasks", e);
     }
     return result;
   }
