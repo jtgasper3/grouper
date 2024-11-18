@@ -16,10 +16,12 @@
 
 package edu.internet2.middleware.grouper.app.upgradeTasks;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.logging.Log;
 import org.quartz.DisallowConcurrentExecution;
 
@@ -80,11 +82,11 @@ public class UpgradeTasksJob extends OtherJobBase {
   /**
    * run standalone
    */
-  public static void runDaemonStandalone() {
-    GrouperSession.internal_callbackRootGrouperSession(new GrouperSessionHandler() {
+  public static String runDaemonStandalone() {
+    return (String) GrouperSession.internal_callbackRootGrouperSession(new GrouperSessionHandler() {
 
       @Override
-      public Object callback(GrouperSession grouperSession) throws GrouperSessionException {
+      public String callback(GrouperSession grouperSession) throws GrouperSessionException {
         Hib3GrouperLoaderLog hib3GrouperLoaderLog = new Hib3GrouperLoaderLog();
         
         hib3GrouperLoaderLog.setHost(GrouperUtil.hostname());
@@ -99,7 +101,22 @@ public class UpgradeTasksJob extends OtherJobBase {
         otherJobInput.setJobName(jobName);
         otherJobInput.setHib3GrouperLoaderLog(hib3GrouperLoaderLog);
         otherJobInput.setGrouperSession(grouperSession);
-        new UpgradeTasksJob().run(otherJobInput);
+        try {          
+          new UpgradeTasksJob().run(otherJobInput);
+          if (!GrouperLoaderStatus.valueOfIgnoreCase(hib3GrouperLoaderLog.getStatus(), true).isError()) {
+            hib3GrouperLoaderLog.setStatus(GrouperLoaderStatus.SUCCESS.name());
+          }
+          hib3GrouperLoaderLog.setEndedTime(new Timestamp(System.currentTimeMillis()));
+          hib3GrouperLoaderLog.store();
+        } catch (Exception e) {
+          hib3GrouperLoaderLog.setStatus(GrouperLoaderStatus.ERROR.name());
+          hib3GrouperLoaderLog.setEndedTime(new Timestamp(System.currentTimeMillis()));
+          hib3GrouperLoaderLog.store();
+        }
+        
+        if (GrouperLoaderStatus.valueOfIgnoreCase(hib3GrouperLoaderLog.getStatus(), true).isError()) {
+          return hib3GrouperLoaderLog.getJobMessage();
+        }
         return null;
       }
     });
@@ -133,7 +150,7 @@ public class UpgradeTasksJob extends OtherJobBase {
     if (isThereWorkToDo) {
       
       int highestEnumVersion = UpgradeTasks.currentVersion();
-      
+      otherJobInput.getHib3GrouperLoaderLog().setTotalCount(highestEnumVersion);
       for (Integer version = 1; version <= highestEnumVersion; version++) {
     
         GrouperDaemonUtils.stopProcessingIfJobPaused();
@@ -159,18 +176,36 @@ public class UpgradeTasksJob extends OtherJobBase {
             } else {
               if (upgradeTaskIsDdl && !doesUpgradeTaskHaveDdlWorkToDo) {
                 doTask = false;
+                group.getAttributeValueDelegate().addValue(upgradeTasksVersionName, "" + version);
+                otherJobInput.getHib3GrouperLoaderLog().appendJobMessage("Skipping upgrade task due to the ddl has been detected to have been already run "+enumName + ". \n");
               }
               
               if (upgradeTaskIsDdl && doesUpgradeTaskHaveDdlWorkToDo && !canRunDdl()) {
-                throw new RuntimeException("There's DDL work to do that has been configured not to be automatic but upgrade task number "+ version + " has not been done manually yet.") ;
+                otherJobInput.getHib3GrouperLoaderLog().addUnresolvableSubjectCount(1);
+                String message = "There's DDL work to do that has been configured not to be automatic but upgrade task number "+ version + " has not been done manually yet.";
+                LOG.error(message);
+                otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(message);
+                otherJobInput.getHib3GrouperLoaderLog().setStatus(GrouperLoaderStatus.ERROR.name());
+                throw new RuntimeException(message);
               }
             }
             
             if (doTask) {
-              task.updateVersionFromPrevious(otherJobInput);
-              group.getAttributeValueDelegate().addValue(upgradeTasksVersionName, "" + version);
-              LOG.info("Upgraded to version " + enumName);
-              otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(" Upgraded to version "+enumName + ". \n");
+              try {                
+                task.updateVersionFromPrevious(otherJobInput);
+                group.getAttributeValueDelegate().addValue(upgradeTasksVersionName, "" + version);
+                LOG.info("Upgraded to version " + enumName);
+                otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(" Upgraded to version "+enumName + ". \n");
+                otherJobInput.getHib3GrouperLoaderLog().addUpdateCount(1);
+              } catch (RuntimeException e) {
+                otherJobInput.getHib3GrouperLoaderLog().addUnresolvableSubjectCount(1);
+                GrouperUtil.injectInException(e, "Upgrade task "+version + ", ");
+                LOG.error("Error", e);
+                otherJobInput.getHib3GrouperLoaderLog().appendJobMessage(GrouperUtil.getFullStackTrace(e));
+                otherJobInput.getHib3GrouperLoaderLog().setStatus(GrouperLoaderStatus.ERROR.name());
+                throw e;
+              }
+       
             }
            
           }
