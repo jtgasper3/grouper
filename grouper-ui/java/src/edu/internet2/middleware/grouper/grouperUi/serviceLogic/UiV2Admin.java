@@ -710,9 +710,9 @@ public class UiV2Admin extends UiServiceLogicBase {
 
       GrouperDaemonConfiguration configToDelete = GrouperDaemonConfiguration.retrieveImplementationFromJobName(jobName);
 
-      String configId = jobName.substring(jobName.lastIndexOf("_")+1, jobName.length());
       if (configToDelete.isMultiple() && StringUtils.isBlank(configToDelete.getConfigId())) {
-        configToDelete.setConfigId(configId);
+        // every known job type can determine its configId; not expected to get here
+        throw new RuntimeException("Unable to determine configId for job '" + jobName + "'");
       }
 
       configToDelete.deleteConfig(true);
