@@ -135,7 +135,9 @@ limitations under the License.
     </module>
     -->
     <module name="MissingDeprecated"/>
-    <module name="JavadocVariable"/>
+    <module name="JavadocVariable">
+      <property name="scope" value="public"/>
+    </module>
 
   </module>
 </module>
