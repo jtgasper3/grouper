@@ -690,7 +690,7 @@ public class GrouperGithubProvisionerTest extends GrouperProvisioningBaseTest {
     
     try {
       // this will create tables
-      List<GrouperScim2User> grouperScimUsers = GrouperScim2ApiCommands.retrieveScimUsers("githubExternalSystem", null, "orgName");
+      List<GrouperScim2User> grouperScimUsers = GrouperScim2ApiCommands.retrieveScimUsers("githubExternalSystem", null);
   
       new GcDbAccess().connectionName("grouper").sql("delete from mock_scim_membership").executeSql();
       new GcDbAccess().connectionName("grouper").sql("delete from mock_scim_group").executeSql();
