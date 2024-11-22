@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import edu.internet2.middleware.grouper.app.provisioning.GrouperProvisioner;
+import edu.internet2.middleware.grouper.app.provisioning.ProvisioningAttribute;
 import edu.internet2.middleware.grouper.app.provisioning.ProvisioningEntity;
 import edu.internet2.middleware.grouper.ddl.DdlVersionBean;
 import edu.internet2.middleware.grouper.ddl.GrouperDdlUtils;
@@ -299,10 +300,8 @@ public class GrouperScim2User {
         if (grouperScimUser.customAttributes == null) {
           grouperScimUser.customAttributes = new HashMap<>();
         }
-        if (grouperScimUser.customAttributeNameToJsonPointer == null) {
-          grouperScimUser.customAttributeNameToJsonPointer = new HashMap<>();
-        }
-        grouperScimUser.customAttributeNameToJsonPointer.put(attributeName, jsonPointer);
+        grouperScimUser.customAttributeNameToJsonPointer = scimConfig.getEntityAttributeJsonPointer();
+
         if (jsonNode.isArray()) {
           ArrayNode arrayNode = (ArrayNode) jsonNode;
           if (arrayNode.size() > 0) {
@@ -689,6 +688,9 @@ public class GrouperScim2User {
    */
   private Map<String, Object> customAttributes = null; // name to value
 
+  /**
+   * this is just from the config class so dont edit it
+   */
   private Map<String, String> customAttributeNameToJsonPointer = null;
   
   
@@ -1095,22 +1097,22 @@ public class GrouperScim2User {
       String jsonPointer = scimConfig.getEntityAttributeJsonPointer().get(attributeName);
       
       Object valueObject = targetEntity.retrieveAttributeValueString(attributeName);
-      if (GrouperUtil.isBlank(valueObject)) {
-        continue;
-      }
-      if (grouperScim2User.customAttributes == null) {
-        grouperScim2User.customAttributes = new HashMap<>();
-      }
-      if (grouperScim2User.customAttributeNameToJsonPointer == null) {
-        grouperScim2User.customAttributeNameToJsonPointer = new HashMap<>();
-      }
+
+      grouperScim2User.customAttributeNameToJsonPointer = scimConfig.getEntityAttributeJsonPointer();
       
       if (StringUtils.equals(scimConfig.getEntityAttributeJsonValueType().get(attributeName), "boolean")) {
         valueObject = GrouperUtil.booleanValue(valueObject);
       }
       
+      ProvisioningAttribute provisioningAttribute = targetEntity.retrieveProvisioningAttribute(attributeName);
+      if (provisioningAttribute == null) {
+        continue;
+      }
+
+      if (grouperScim2User.customAttributes == null) {
+        grouperScim2User.customAttributes = new HashMap<>();
+      }
       grouperScim2User.customAttributes.put(attributeName, valueObject);
-      grouperScim2User.customAttributeNameToJsonPointer.put(attributeName, jsonPointer);
     }
     
     return grouperScim2User;

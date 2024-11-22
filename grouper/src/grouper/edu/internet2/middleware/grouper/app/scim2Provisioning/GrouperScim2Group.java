@@ -97,16 +97,13 @@ public class GrouperScim2Group {
       if (grouperScim2Group.customAttributes == null) {
         grouperScim2Group.customAttributes = new HashMap<>();
       }
-      if (grouperScim2Group.customAttributeNameToJsonPointer == null) {
-        grouperScim2Group.customAttributeNameToJsonPointer = new HashMap<>();
-      }
+      grouperScim2Group.customAttributeNameToJsonPointer = scimConfig.getGroupAttributeJsonPointer();
       
       if (StringUtils.equals(scimConfig.getGroupAttributeJsonValueType().get(attributeName), "boolean")) {
         valueObject = GrouperUtil.booleanValue(valueObject);
       }
       
       grouperScim2Group.customAttributes.put(attributeName, valueObject);
-      grouperScim2Group.customAttributeNameToJsonPointer.put(attributeName, jsonPointer);
     }
     
     return grouperScim2Group;
@@ -253,10 +250,8 @@ public class GrouperScim2Group {
         if (grouperScimGroup.customAttributes == null) {
           grouperScimGroup.customAttributes = new HashMap<>();
         }
-        if (grouperScimGroup.customAttributeNameToJsonPointer == null) {
-          grouperScimGroup.customAttributeNameToJsonPointer = new HashMap<>();
-        }
-        grouperScimGroup.customAttributeNameToJsonPointer.put(attributeName, jsonPointer);
+        grouperScimGroup.customAttributeNameToJsonPointer = scimConfig.getGroupAttributeJsonPointer();
+
         if (jsonNode.isArray()) {
           ArrayNode arrayNode = (ArrayNode) jsonNode;
           if (arrayNode.size() > 0) {
@@ -517,6 +512,9 @@ public class GrouperScim2Group {
    */
   private Map<String, Object> customAttributes = null; // name to value
 
+  /**
+   * this is just from config so dont edit it
+   */
   private Map<String, String> customAttributeNameToJsonPointer = null;
   
   

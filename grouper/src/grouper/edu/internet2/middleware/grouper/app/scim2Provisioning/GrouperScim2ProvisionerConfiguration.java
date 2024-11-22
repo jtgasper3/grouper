@@ -16,12 +16,16 @@ public class GrouperScim2ProvisionerConfiguration extends GrouperProvisioningCon
   private String scimType;
   
   private String acceptHeader;
-  
+
   private String scimNamePatchStrategy;
   
   private String scimEmailPatchStrategy;
   
   private String scimContentType;
+  
+  private boolean scimRetrieveMembershipsByUser = true;
+  
+  private boolean scimRetrieveMembershipsByGroup = true;
   
   public boolean isGithubOrgConfiguration() {
     return StringUtils.equals("Github", this.getScimType())
@@ -117,6 +121,26 @@ public class GrouperScim2ProvisionerConfiguration extends GrouperProvisioningCon
     this.scimContentType = scimContentType;
   }
 
+  
+  public boolean isScimRetrieveMembershipsByUser() {
+    return scimRetrieveMembershipsByUser;
+  }
+
+  
+  public void setScimRetrieveMembershipsByUser(boolean scimRetrieveMembershipsByUser) {
+    this.scimRetrieveMembershipsByUser = scimRetrieveMembershipsByUser;
+  }
+
+  
+  public boolean isScimRetrieveMembershipsByGroup() {
+    return scimRetrieveMembershipsByGroup;
+  }
+
+  
+  public void setScimRetrieveMembershipsByGroup(boolean scimRetrieveMembershipsByGroup) {
+    this.scimRetrieveMembershipsByGroup = scimRetrieveMembershipsByGroup;
+  }
+
   @Override
   public void configureSpecificSettings() {
     
@@ -132,6 +156,10 @@ public class GrouperScim2ProvisionerConfiguration extends GrouperProvisioningCon
     this.disableEntitiesInsteadOfDelete = GrouperUtil.booleanValue(this.retrieveConfigBoolean("disableEntitiesInsteadOfDelete", false), false);
 
     this.includeActiveOnEntityCreate = GrouperUtil.booleanValue(this.retrieveConfigBoolean("includeActiveOnEntityCreate", false), true);
+    
+    this.scimRetrieveMembershipsByUser = GrouperUtil.booleanValue(this.retrieveConfigBoolean("scimRetrieveMembershipsByUser", false), true);
+    
+    this.scimRetrieveMembershipsByGroup = GrouperUtil.booleanValue(this.retrieveConfigBoolean("scimRetrieveMembershipsByGroup", false), true);
     
     for (String attributeName : this.getTargetEntityAttributeNameToConfig().keySet()) {
       GrouperProvisioningConfigurationAttribute configurationAttribute = this.getTargetEntityAttributeNameToConfig().get(attributeName);

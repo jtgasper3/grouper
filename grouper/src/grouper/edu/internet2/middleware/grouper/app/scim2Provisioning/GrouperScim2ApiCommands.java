@@ -1,6 +1,7 @@
 package edu.internet2.middleware.grouper.app.scim2Provisioning;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -35,29 +36,29 @@ public class GrouperScim2ApiCommands {
     GrouperStartup.startup();
     
 
-    GrouperScim2User scimUser = retrieveScimUser("serviceNowReal", "id", "00003f9787005210cd2c41d6cebb35f5", null);
+    GrouperScim2User scimUser = retrieveScimUser("serviceNowReal", "id", "00003f9787005210cd2c41d6cebb35f5", null, new ScimSettings());
     
     
     Map<String, ProvisioningObjectChangeAction> fieldToAction = new HashMap<String, ProvisioningObjectChangeAction>();
 //    fieldToAction.put("manager_uuid", ProvisioningObjectChangeAction.update);
-//    fieldToAction.put("department_uuid", ProvisioningObjectChangeAction.update);
-    fieldToAction.put("emailValue", ProvisioningObjectChangeAction.update);
+    fieldToAction.put("department_uuid", ProvisioningObjectChangeAction.update);
+//    fieldToAction.put("emailValue", ProvisioningObjectChangeAction.update);
     
-    scimUser.setEmailValue("tmurra26@test.edu");
+//    scimUser.setEmailValue("tmurra26@test.edu");
     
-//    scimUser.setCustomAttributes(new HashMap<>());
-//    scimUser.setCustomAttributeNameToJsonPointer(new HashMap<>());
+    scimUser.setCustomAttributes(new HashMap<>());
+    scimUser.setCustomAttributeNameToJsonPointer(new HashMap<>());
     
     ///urn:ietf:params:scim:schemas:extension:servicenow:2.0:User/manager/value
 //    scimUser.getCustomAttributeNameToJsonPointer().put("manager_uuid", "/urn:ietf:params:scim:schemas:extension:servicenow:2.0:User/manager/value");
-//    scimUser.getCustomAttributeNameToJsonPointer().put("department_uuid", "/urn:ietf:params:scim:schemas:extension:servicenow:2.0:User/department/value");
+    scimUser.getCustomAttributeNameToJsonPointer().put("department_uuid", "/urn:ietf:params:scim:schemas:extension:servicenow:2.0:User/department/value");
 //    scimUser.getCustomAttributes().put("manager_uuid", "42d96d076fbce200db62358fae3ee452");
-//    scimUser.getCustomAttributes().put("department_uuid", "f7852b636f53150014ddc6012e3ee40a");
-    
-    String scimNamePatchStrategy = "qualified";
+//    scimUser.getCustomAttributes().remove("department_uuid");
+    scimUser.getCustomAttributes().put("department_uuid", null);
+//    String scimNamePatchStrategy = "qualified";
     
     ScimSettings scimSettings = new ScimSettings();
-    scimSettings.setScimEmailPatchStrategy("pathEmailsQualified");
+//    scimSettings.setScimEmailPatchStrategy("pathEmailsQualified");
 //    scimSettings.setOrgName(orgNameThreadLocal.get());
 //    scimSettings.setScimNamePatchStrategy(scimNamePatchStrategy);
 //    scimSettings.setAcceptHeader(scimConfiguration.getAcceptHeader());
@@ -180,7 +181,7 @@ public class GrouperScim2ApiCommands {
 //    grouperScim2User = retrieveScimUser(scimConfigId, "userName", "userNam5");
 //    System.out.println(grouperScim2User);
 
-    List<GrouperScim2User> grouperScim2Users = retrieveScimUsers((ScimSettings)null, "awsConfigId");
+    List<GrouperScim2User> grouperScim2Users = retrieveScimUsers((ScimSettings)null, "awsConfigId", null);
     for (GrouperScim2User grouperScim2User : grouperScim2Users) {
       System.out.println(grouperScim2User);
     }
@@ -256,6 +257,14 @@ public class GrouperScim2ApiCommands {
       //    ]
       // }
 
+      debugMap.put("id", grouperScim2User.getId());
+      
+      boolean shouldLog = GrouperScim2Log.isLog();
+      if (shouldLog) {
+        debugMap.put("jsonPointers", GrouperUtil.length(grouperScim2User.getCustomAttributeNameToJsonPointer()));
+      }
+
+      
       ObjectNode jsonToSend = GrouperUtil.jsonJacksonNode();
       
       {
@@ -472,7 +481,12 @@ public class GrouperScim2ApiCommands {
         
       }
 
+      int fieldIndex = 0;
       for (String fieldToUpdate : fieldsToUpdate.keySet()) {
+        
+        if (shouldLog) {
+          debugMap.put("field_" + fieldIndex, fieldToUpdate);
+        }
         
         if (StringUtils.equals(fieldToUpdate, "emailValue") || StringUtils.equals(fieldToUpdate, "emailType") || StringUtils.equals(fieldToUpdate, "emailValue2") || StringUtils.equals(fieldToUpdate, "emailType2")) {
           continue;
@@ -483,6 +497,10 @@ public class GrouperScim2ApiCommands {
         }
         
         ProvisioningObjectChangeAction provisioningObjectChangeAction = fieldsToUpdate.get(fieldToUpdate);
+
+        if (shouldLog) {
+          debugMap.put("action_" + fieldIndex, provisioningObjectChangeAction);
+        }
         
         ObjectNode operationNode = GrouperUtil.jsonJacksonNode();
         
@@ -539,20 +557,63 @@ public class GrouperScim2ApiCommands {
             fieldToUpdate = "name.givenName";
           }
         }
-        
+
+        if (shouldLog && grouperScim2User.getCustomAttributeNameToJsonPointer() != null) {
+          debugMap.put("pointer_" + fieldIndex, grouperScim2User.getCustomAttributeNameToJsonPointer().get(fieldToUpdate));
+        }
+
         if (grouperScim2User.getCustomAttributeNameToJsonPointer() != null && grouperScim2User.getCustomAttributeNameToJsonPointer().containsKey(fieldToUpdate)) {
           
           String jsonPointer = grouperScim2User.getCustomAttributeNameToJsonPointer().get(fieldToUpdate);
-          Object value = grouperScim2User.getCustomAttributes().get(fieldToUpdate);
-          ObjectNode valueNode = GrouperUtil.jsonJacksonNode();
-          operationNode.set("value", valueNode);
-          GrouperUtil.jsonJacksonAssignJsonPointerString(valueNode, jsonPointer, value);
+          Object value = grouperScim2User.getCustomAttributes() == null ? null : grouperScim2User.getCustomAttributes().get(fieldToUpdate);
+
+          if (shouldLog) {
+            debugMap.put("value_" + fieldIndex, value);
+          }
+
           
+          // if we are updating to null just remove it
+          if (provisioningObjectChangeAction == ProvisioningObjectChangeAction.update && value == null) {
+            operationNode.put("op", "remove");
+            provisioningObjectChangeAction = ProvisioningObjectChangeAction.delete;
+
+            if (shouldLog) {
+              debugMap.put("switch_" + fieldIndex, provisioningObjectChangeAction);
+            }
+
+          }
+          
+          if (provisioningObjectChangeAction == ProvisioningObjectChangeAction.delete) {
+            // we are going from: /urn:ietf:params:scim:schemas:extension:servicenow:2.0:User/department/value
+            //                to: urn:ietf:params:scim:schemas:extension:servicenow:2.0:User:department.value
+            String path = jsonPointer;
+            // pop off first slash
+            if (path.startsWith("/")) {
+              path = path.substring(1);
+            }
+            if (path.contains(":")) {
+              int slashIndex = path.indexOf("/");
+              path = path.substring(0, slashIndex) + ":" + path.substring(slashIndex+1, path.length());
+            }
+            path = StringUtils.replace(path, "/", ".");
+            operationNode.put("path", path);
+
+            if (shouldLog) {
+              debugMap.put("path_" + fieldIndex, provisioningObjectChangeAction);
+            }
+
+          } else {
+          
+            ObjectNode valueNode = GrouperUtil.jsonJacksonNode();
+            operationNode.set("value", valueNode);
+            GrouperUtil.jsonJacksonAssignJsonPointerString(valueNode, jsonPointer, value);
+          }          
         } else {
           operationNode.put("path", fieldToUpdate);
         }
        
         operationsNode.add(operationNode);
+        fieldIndex++;
         
       }
       
@@ -664,10 +725,36 @@ public class GrouperScim2ApiCommands {
         
         if (grouperScim2Group.getCustomAttributeNameToJsonPointer() != null && grouperScim2Group.getCustomAttributeNameToJsonPointer().containsKey(fieldToUpdate)) {
           String jsonPointer = grouperScim2Group.getCustomAttributeNameToJsonPointer().get(fieldToUpdate);
-          Object value = grouperScim2Group.getCustomAttributes().get(fieldToUpdate);
-          ObjectNode valueNode = GrouperUtil.jsonJacksonNode();
-          operationNode.set("value", valueNode);
-          GrouperUtil.jsonJacksonAssignJsonPointerString(valueNode, jsonPointer, value);
+          Object value = grouperScim2Group.getCustomAttributes() == null ? null : grouperScim2Group.getCustomAttributes().get(fieldToUpdate);
+
+          // if we are updating to null just remove it
+          if (provisioningObjectChangeAction == ProvisioningObjectChangeAction.update && value == null) {
+            operationNode.put("op", "remove");
+            provisioningObjectChangeAction = ProvisioningObjectChangeAction.delete;
+
+          }
+
+          if (provisioningObjectChangeAction == ProvisioningObjectChangeAction.delete) {
+            // we are going from: /urn:ietf:params:scim:schemas:extension:servicenow:2.0:User/department/value
+            //                to: urn:ietf:params:scim:schemas:extension:servicenow:2.0:User:department.value
+            String path = jsonPointer;
+            // pop off first slash
+            if (path.startsWith("/")) {
+              path = path.substring(1);
+            }
+            if (path.contains(":")) {
+              int slashIndex = path.indexOf("/");
+              path = path.substring(0, slashIndex) + ":" + path.substring(slashIndex+1, path.length());
+            }
+            path = StringUtils.replace(path, "/", ".");
+            operationNode.put("path", path);
+
+          } else {
+
+            ObjectNode valueNode = GrouperUtil.jsonJacksonNode();
+            operationNode.set("value", valueNode);
+            GrouperUtil.jsonJacksonAssignJsonPointerString(valueNode, jsonPointer, value);
+          }
           
         } else {
           operationNode.put("path", fieldToUpdate);
@@ -856,7 +943,7 @@ public class GrouperScim2ApiCommands {
     ScimSettings scimSettings = new ScimSettings();
     scimSettings.setAcceptHeader(acceptHeader);
     scimSettings.setOrgName(orgName);
-    return retrieveScimUser(configId, fieldName, fieldValue, scimSettings);
+    return retrieveScimUser(configId, fieldName, fieldValue, null, scimSettings);
   }
   
   /**
@@ -865,7 +952,9 @@ public class GrouperScim2ApiCommands {
    * @param fieldValue is value of id or userPrincipalName
    * @return
    */
-  public static GrouperScim2User retrieveScimUser(String configId, String fieldName, String fieldValue, ScimSettings scimSettings) {
+  public static GrouperScim2User retrieveScimUser(String configId, String fieldName, 
+      String fieldValue, GrouperScim2MembershipCache grouperScim2MembershipCache, 
+      ScimSettings scimSettings) {
 
     Map<String, Object> debugMap = new LinkedHashMap<String, Object>();
 
@@ -893,6 +982,10 @@ public class GrouperScim2ApiCommands {
       if (StringUtils.equals(fieldName, "id")) {
         GrouperScim2User grouperScimUser = GrouperScim2User.fromJson(jsonNode);
         debugMap.put("found", grouperScimUser != null);
+        if (grouperScimUser != null) {
+          populateMembershipsFromUser(grouperScim2MembershipCache, jsonNode,
+              grouperScimUser);
+        }
         return grouperScimUser;
       }
 
@@ -915,6 +1008,9 @@ public class GrouperScim2ApiCommands {
       JsonNode userNode = resourcesNode.get(0);
       GrouperScim2User grouperScimUser = GrouperScim2User.fromJson(userNode);
       debugMap.put("found", grouperScimUser != null);
+      populateMembershipsFromUser(grouperScim2MembershipCache, userNode,
+          grouperScimUser);
+
       return grouperScimUser;
 
     } catch (RuntimeException re) {
@@ -934,7 +1030,7 @@ public class GrouperScim2ApiCommands {
   public static List<GrouperScim2User> retrieveScimUsers(String configId, String acceptHeader) {
     ScimSettings scimSettings = new ScimSettings();
     scimSettings.setAcceptHeader(acceptHeader);
-    return retrieveScimUsers(scimSettings, configId);
+    return retrieveScimUsers(scimSettings, configId, null);
   }
 
   /**
@@ -945,14 +1041,14 @@ public class GrouperScim2ApiCommands {
     ScimSettings scimSettings = new ScimSettings();
     scimSettings.setAcceptHeader(acceptHeader);
     scimSettings.setOrgName(orgName);
-    return retrieveScimUsers(scimSettings, configId);
+    return retrieveScimUsers(scimSettings, configId, null);
   }
   
   /**
    * retrieve all users
    * @return the results
    */
-  public static List<GrouperScim2User> retrieveScimUsers(ScimSettings scimSettings, String configId) {
+  public static List<GrouperScim2User> retrieveScimUsers(ScimSettings scimSettings, String configId, GrouperScim2MembershipCache grouperScim2MembershipCache) {
 
     Map<String, Object> debugMap = new LinkedHashMap<String, Object>();
 
@@ -1025,6 +1121,7 @@ public class GrouperScim2ApiCommands {
             results.add(grouperScimUser);
             idsRetreved.add(grouperScimUser.getId());
             foundNewUser = true;
+            populateMembershipsFromUser(grouperScim2MembershipCache, userNode, grouperScimUser);
           }
         }
         
@@ -1185,24 +1282,13 @@ public class GrouperScim2ApiCommands {
   }
 
   /**
-   * @deprecated
-   */
-  @Deprecated
-  public static GrouperScim2Group retrieveScimGroup(String configId, String acceptHeader, String fieldName,
-      String fieldValue, Map<String, Set<String>> groupIdToMembershipEntityIds) {
-    ScimSettings scimSettings = new ScimSettings();
-    scimSettings.setAcceptHeader(acceptHeader);
-    return retrieveScimGroup(configId, fieldName, fieldValue, groupIdToMembershipEntityIds, scimSettings);
-  }
-  
-  /**
    * @param configId
    * @param fieldName id or userPrincipalName
    * @param fieldValue is value of id or userPrincipalName
    * @return
    */
   public static GrouperScim2Group retrieveScimGroup(String configId, String fieldName,
-      String fieldValue, Map<String, Set<String>> groupIdToMembershipEntityIds, ScimSettings scimSettings) {
+      String fieldValue, GrouperScim2MembershipCache grouperScim2MembershipCache, ScimSettings scimSettings) {
   
     Map<String, Object> debugMap = new LinkedHashMap<String, Object>();
   
@@ -1238,6 +1324,11 @@ public class GrouperScim2ApiCommands {
       if (StringUtils.equals(fieldName, "id")) {
         GrouperScim2Group grouperScimGroup = GrouperScim2Group.fromJson(jsonNode);
         debugMap.put("found", grouperScimGroup != null);
+        if (grouperScimGroup != null) {
+          populateMembershipsFromGroup(grouperScim2MembershipCache, jsonNode,
+              grouperScimGroup);
+        }
+
         return grouperScimGroup;
       }
   
@@ -1260,7 +1351,7 @@ public class GrouperScim2ApiCommands {
       JsonNode groupNode = resourcesNode.get(0);
       GrouperScim2Group grouperScimGroup = GrouperScim2Group.fromJson(groupNode);
       debugMap.put("found", grouperScimGroup != null);
-      populateMembershipsFromGroup(groupIdToMembershipEntityIds, groupNode,
+      populateMembershipsFromGroup(grouperScim2MembershipCache, groupNode,
           grouperScimGroup);
       return grouperScimGroup;
   
@@ -1576,20 +1667,10 @@ public class GrouperScim2ApiCommands {
   }
   
   /**
-   * @deprecated
-   */
-  @Deprecated
-  public static List<GrouperScim2Group> retrieveScimGroups(String configId, String acceptHeader, Map<String, Set<String>> groupIdToMembershipEntityIds) {
-    ScimSettings scimSettings = new ScimSettings();
-    scimSettings.setAcceptHeader(acceptHeader);
-    return retrieveScimGroups(scimSettings, configId, groupIdToMembershipEntityIds);
-  }
-  
-  /**
    * retrieve all groups
    * @return the results
    */
-  public static List<GrouperScim2Group> retrieveScimGroups(ScimSettings scimSettings, String configId, Map<String, Set<String>> groupIdToMembershipEntityIds) {
+  public static List<GrouperScim2Group> retrieveScimGroups(ScimSettings scimSettings, String configId, GrouperScim2MembershipCache grouperScim2MembershipCache) {
   
     Map<String, Object> debugMap = new LinkedHashMap<String, Object>();
 
@@ -1659,8 +1740,8 @@ public class GrouperScim2ApiCommands {
             results.add(grouperScimGroup);
             idsRetreved.add(grouperScimGroup.getId());
             foundNewGroup = true;
+            populateMembershipsFromGroup(grouperScim2MembershipCache, groupNode, grouperScimGroup);
           }
-          populateMembershipsFromGroup(groupIdToMembershipEntityIds, groupNode, grouperScimGroup);
         }
         
         previousStartIndex = startIndex;
@@ -1684,22 +1765,41 @@ public class GrouperScim2ApiCommands {
 
   }
 
-  private static void populateMembershipsFromGroup(Map<String, Set<String>> groupIdToMembershipEntityIds, JsonNode groupNode, GrouperScim2Group grouperScimGroup) {
-    if (groupIdToMembershipEntityIds != null && StringUtils.isNotBlank(grouperScimGroup.getId())) {
-      Set<String> entityIds = new HashSet<>();
+  private static void populateMembershipsFromGroup(GrouperScim2MembershipCache grouperScim2MembershipCache, JsonNode groupNode, GrouperScim2Group grouperScimGroup) {
+    String groupId = grouperScimGroup.getId();
+    if (grouperScim2MembershipCache != null && StringUtils.isNotBlank(groupId)) {
+      grouperScim2MembershipCache.addMembershipsForGroup(groupId);
+
       if (groupNode.has("members")) {
         ArrayNode membersNode = GrouperUtil.jsonJacksonGetArrayNode(groupNode, "members");
         if (membersNode != null) {
           for (int membersIndex=0; membersIndex<membersNode.size(); membersIndex++) {
             JsonNode singleMemberNode = membersNode.get(membersIndex);
-            String entityId = GrouperUtil.jsonJacksonGetString(singleMemberNode, "value");
-            entityIds.add(entityId);
+            String userId = GrouperUtil.jsonJacksonGetString(singleMemberNode, "value");
+            grouperScim2MembershipCache.addMembership(groupId, userId);
           }
         }
       }
-      groupIdToMembershipEntityIds.put(grouperScimGroup.getId(), entityIds);
     }
   }
+
+  private static void populateMembershipsFromUser(GrouperScim2MembershipCache grouperScim2MembershipCache, JsonNode userNode, GrouperScim2User grouperScimUser) {
+    String userId = grouperScimUser.getId();
+    if (grouperScim2MembershipCache != null && StringUtils.isNotBlank(userId)) {
+      grouperScim2MembershipCache.addMembershipsForUser(userId);
+      if (userNode.has("groups")) {
+        ArrayNode groupsNode = GrouperUtil.jsonJacksonGetArrayNode(userNode, "groups");
+        if (groupsNode != null) {
+          for (int membersIndex=0; membersIndex<groupsNode.size(); membersIndex++) {
+            JsonNode singleMemberNode = groupsNode.get(membersIndex);
+            String groupId = GrouperUtil.jsonJacksonGetString(singleMemberNode, "value");
+            grouperScim2MembershipCache.addMembership(groupId, userId);
+          }
+        }
+      }
+    }
+  }
+
 
 
 //  public void updateScimUser(String configId,
