@@ -163,11 +163,12 @@ public class GroupAttributeNameValidationHookTest extends GrouperTest {
   
     try {
       try {
-        
-        GroupAttributeNameValidationHook.attributeNamePatterns.put(Group.FIELD_DESCRIPTION, Pattern.compile("^" + GroupAttributeNameValidationHook.TEST_PATTERN + "$"));
-        GroupAttributeNameValidationHook.attributeNameRegexes.put(Group.FIELD_DESCRIPTION, "^" + GroupAttributeNameValidationHook.TEST_PATTERN + "$");
-        GroupAttributeNameValidationHook.attributeNameVetoMessages.put(Group.FIELD_DESCRIPTION, "Attribute description cannot have the value: '$attributeValue$'");
-        
+        GroupAttributeNameValidationHook.addAttributeNameData(
+                Group.FIELD_DESCRIPTION,
+                "^" + GroupAttributeNameValidationHook.TEST_PATTERN + "$",
+                "Attribute description cannot have the value: '$attributeValue$'",
+                "Test class " + this.getClass().getName());
+
         //put this in try/catch in case storing on setters
         //add the attribute
         group.setDescription("whatever");
@@ -184,10 +185,7 @@ public class GroupAttributeNameValidationHookTest extends GrouperTest {
     
       //should be fine
     } finally {
-      GroupAttributeNameValidationHook.attributeNamePatterns.remove(Group.FIELD_DESCRIPTION);
-      GroupAttributeNameValidationHook.attributeNameRegexes.remove(Group.FIELD_DESCRIPTION);
-      GroupAttributeNameValidationHook.attributeNameVetoMessages.remove(Group.FIELD_DESCRIPTION);
-      
+      GroupAttributeNameValidationHook.removeAttributeNameData(Group.FIELD_DESCRIPTION);
     }
   
   }

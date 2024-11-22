@@ -92,11 +92,12 @@ public class AttributeDefNameAttributeNameValidationHookTest extends GrouperTest
   
     try {
       try {
-        
-        AttributeDefNameAttributeNameValidationHook.attributeNamePatterns.put(AttributeDefName.FIELD_DESCRIPTION, Pattern.compile("^" + StemAttributeNameValidationHook.TEST_PATTERN + "$"));
-        AttributeDefNameAttributeNameValidationHook.attributeNameRegexes.put(AttributeDefName.FIELD_DESCRIPTION, "^" + GroupAttributeNameValidationHook.TEST_PATTERN + "$");
-        AttributeDefNameAttributeNameValidationHook.attributeNameVetoMessages.put(AttributeDefName.FIELD_DESCRIPTION, "Attribute description cannot have the value: '$attributeValue$'");
-        
+        AttributeDefNameAttributeNameValidationHook.addAttributeNameData(
+                AttributeDefName.FIELD_DESCRIPTION,
+                "^" + AttributeDefNameAttributeNameValidationHook.TEST_PATTERN + "$",
+                "Attribute description cannot have the value: '$attributeValue$'",
+                "Test class " + this.getClass().getName());
+
         //put this in try/catch in case storing on setters
         //add the attribute
         attributeDefName.setDescription("whatever");
@@ -107,16 +108,13 @@ public class AttributeDefNameAttributeNameValidationHookTest extends GrouperTest
         //this is a success, it is supposed to veto  
       }
       
-      attributeDefName.setDescription(GroupAttributeNameValidationHook.TEST_PATTERN);
+      attributeDefName.setDescription(AttributeDefNameAttributeNameValidationHook.TEST_PATTERN);
       
       attributeDefName.store();
     
       //should be fine
     } finally {
-      AttributeDefNameAttributeNameValidationHook.attributeNamePatterns.remove(AttributeDefName.FIELD_DESCRIPTION);
-      AttributeDefNameAttributeNameValidationHook.attributeNameRegexes.remove(AttributeDefName.FIELD_DESCRIPTION);
-      AttributeDefNameAttributeNameValidationHook.attributeNameVetoMessages.remove(AttributeDefName.FIELD_DESCRIPTION);
-      
+      AttributeDefNameAttributeNameValidationHook.removeAttributeNameData(AttributeDefName.FIELD_DESCRIPTION);
     }
   
   }

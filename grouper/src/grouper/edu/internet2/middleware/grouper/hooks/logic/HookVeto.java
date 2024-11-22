@@ -45,7 +45,12 @@ public class HookVeto extends RuntimeException {
    * 20 characters.
    */
   private String reason;
-  
+
+  /**
+   * optional detailed message that gets logged but does not show up in the UI
+   */
+  private String detail;
+
   /**
    * attributes to put in veto
    */
@@ -135,7 +140,24 @@ public class HookVeto extends RuntimeException {
     this.reasonKey = theReasonKey;
   }
 
-  
+
+  /**
+   * construct a veto including detail
+   * @param theReasonKey key of the reason, e.g. something that could be used in an
+   * externalized string file e.g. for the UI.  e.g. hook.veto.group.invalidExtension
+   * @param theReason default text that would be shown to user if there is no externalized
+   * string available.  e.g. 'Invalid ID for group.
+   * @param theDetail optional detail that is in the log but not the UI
+   *
+   */
+  public HookVeto(String theReasonKey, String theReason, String theDetail) {
+    super(theReasonKey + ": " + theReason + "; " + theDetail);
+    this.reason = theReason;
+    this.reasonKey = theReasonKey;
+    this.detail = theDetail;
+  }
+
+
   /**
    * key of the reason, e.g. something that could be used in an
    * externalized string file e.g. for the UI.  e.g. hook.veto.group.invalidExtension

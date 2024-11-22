@@ -46,20 +46,32 @@ import edu.internet2.middleware.grouper.util.GrouperUtil;
  * <pre>
  * built in hook to grouper, which is turned on when it is configured in the grouper.properties.
  * 
- * you can retrict certain attributes of a group to be within a certain regex
+ * you can restrict certain attributes of a group to be within a certain regex
  * 
  * </pre>
  */
 public class GroupAttributeNameValidationHook extends GroupHooks {
-  
+
+  /**
+   * Store data from properties associated with an attribute
+   * @param attributeName the attribute from group.attribute.validator.attributeName.X
+   * @param pattern compiled regex from group.attribute.validator.regex.X
+   * @param regex regex String from group.attribute.validator.regex.X
+   * @param vetoMessage veto message from group.attribute.validator.vetoMessage.X
+   * @param originalProperty description of the property defining the validation
+   */
+  record AttributeValidationData(String attributeName,
+                                 Pattern pattern,
+                                 String regex,
+                                 String vetoMessage,
+                                 String originalProperty) { }
+
   /**
    * 
    */
   public static void clearHook() {
     registered = false;
-    attributeNamePatterns.clear();
-    attributeNameRegexes.clear();
-    attributeNameVetoMessages.clear();
+    attributeNameData.clear();
   }
 
   /**
@@ -124,33 +136,44 @@ public class GroupAttributeNameValidationHook extends GroupHooks {
             + "' index: " + index + ", check the grouper.properties file");
       }
       //see if already exists
-      if (attributeNamePatterns.containsKey(attributeName)) {
+      if (attributeNameData.containsKey(attributeName)) {
         throw new RuntimeException("Attribute name already exists (duplicate): '" + attributeName
             + "' index: " + index + ", check the grouper.properties file");
       }
       //add all configs
-      attributeNamePatterns.put(attributeName, Pattern.compile(regex));
-      attributeNameRegexes.put(attributeName, regex);
-      attributeNameVetoMessages.put(attributeName, vetoMessage);
-      
+      attributeNameData.put(attributeName,
+              new AttributeValidationData(attributeName,
+                      Pattern.compile(regex),
+                      regex,
+                      vetoMessage,
+                      "group.attribute.validator.regex." + index + " /" + regex + "/"));
+
       index++;
     }
 
     if (index == 0 && GrouperConfig.retrieveConfig().propertyValueBoolean("group.validateExtensionByDefault", true)) {
-      
-      attributeNamePatterns.put("extension", Pattern.compile(defaultRegex));
-      attributeNameRegexes.put("extension", defaultRegex);
-      attributeNameVetoMessages.put("extension", GrouperTextContainer.textOrNull("veto.group.invalidDefaultChars"));
-      
+      attributeNameData.put("extension",
+              new AttributeValidationData(
+                      "extension",
+                      Pattern.compile(defaultRegex),
+                      defaultRegex,
+                      GrouperUtil.defaultString(
+                              GrouperTextContainer.textOrNull("veto.group.invalidDefaultChars"),
+                              "veto.group.invalidDefaultChars (missing text property)"),
+                      "group.validateExtensionByDefault /" + defaultRegex + "/"));
+
       index = 1;
     }
     
     if (addTestValidation) {
-      
-      attributeNamePatterns.put(TEST_ATTRIBUTE_NAME, Pattern.compile("^" + TEST_PATTERN + "$"));
-      attributeNameRegexes.put(TEST_ATTRIBUTE_NAME, "^" + TEST_PATTERN + "$");
-      attributeNameVetoMessages.put(TEST_ATTRIBUTE_NAME, "Attribute testAttribute123 cannot have the value: '$attributeValue$'");
-      
+      attributeNameData.put(TEST_ATTRIBUTE_NAME,
+              new AttributeValidationData(
+                      TEST_ATTRIBUTE_NAME,
+                      Pattern.compile("^" + TEST_PATTERN + "$"),
+                      "^" + TEST_PATTERN + "$",
+                      "Attribute testAttribute123 cannot have the value: '$attributeValue$'",
+                      "GroupAttributeNameValidationHook:registerHookIfNecessary(true)"));
+
       index++;
     }
     
@@ -200,14 +223,28 @@ public class GroupAttributeNameValidationHook extends GroupHooks {
   }
 
   /** cache of attribute names to patterns */
-  static Map<String, Pattern> attributeNamePatterns = new HashMap<String, Pattern>();
+  private static Map<String, AttributeValidationData> attributeNameData = new HashMap<>();
 
-  /** cache of attribute names to regexs */
-  static Map<String, String> attributeNameRegexes = new HashMap<String, String>();
-  
-  /** cache of attribute names to error messages when a name doesnt match */
-  static Map<String, String> attributeNameVetoMessages = new HashMap<String, String>();
-  
+  /**
+   * Add a custom validator after Grouper startup (mainly used for test classes)
+   * @param attributeName attribute key for record
+   * @param regex pattern string
+   * @param vetoMessage veto message
+   * @param originalProperty description of where the validation came from (property, etc)
+   */
+  public static void addAttributeNameData(String attributeName, String regex, String vetoMessage, String originalProperty) {
+    attributeNameData.put(attributeName, new AttributeValidationData(
+            attributeName, Pattern.compile(regex), regex, vetoMessage, originalProperty));
+  }
+
+  /**
+   *
+   * @param attributeName attribute key for record
+   */
+  public static void removeAttributeNameData(String attributeName) {
+    attributeNameData.remove(attributeName);
+  }
+
   /**
    * check that a new attribute value is ok (either a group field, or an attribute)
    * @param attributeName 
@@ -215,22 +252,23 @@ public class GroupAttributeNameValidationHook extends GroupHooks {
    */
   static void groupPreChangeAttribute(String attributeName, String attributeValue) {
     //see if there is a configuration about this attribute
-    if (attributeNamePatterns.containsKey(attributeName)) {
-      Pattern pattern = attributeNamePatterns.get(attributeName);
+    if (attributeNameData.containsKey(attributeName)) {
+      AttributeValidationData validator = attributeNameData.get(attributeName);
+      Pattern pattern = validator.pattern;
       if (pattern == null) {
-        throw new RuntimeException("Regex pattern '" + attributeNameRegexes.get(attributeName) 
+        throw new RuntimeException("Regex pattern '" + validator.regex
             + "'probably didnt compile for attribute: '" 
             + attributeName + "', check logs or grouper.properties");
       }
       Matcher matcher = pattern.matcher(StringUtils.defaultString(attributeValue));
       if (!matcher.matches()) {
-        
-        String attributeNameErrorMessage = attributeNameVetoMessages.get(attributeName);
+        String originalProperty = GrouperUtil.defaultString(validator.originalProperty, "<Unspecified property>");
+        String vetoMessageExpanded = validator.vetoMessage.replace("$attributeValue$", GrouperUtil.xmlEscape(attributeValue));
 
-        //substitute the attribute name
-        attributeNameErrorMessage = StringUtils.replace(attributeNameErrorMessage, "$attributeValue$", GrouperUtil.xmlEscape(attributeValue));
-        
-        throw new HookVeto("veto.group.attribute.name.regex." + attributeName, attributeNameErrorMessage);
+        String logMessage = "group attribute [" + attributeName + "], checking '" + attributeValue + "' against grouper.properties " + originalProperty;
+
+        //throw new HookVeto(validator.vetoMessage, attributeNameErrorMessage);
+        throw new HookVeto("", vetoMessageExpanded, logMessage);
       }
     }
   }

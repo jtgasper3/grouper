@@ -90,10 +90,12 @@ public class AttributeDefAttributeNameValidationHookTest extends GrouperTest {
     try {
       try {
         
-        AttributeDefAttributeNameValidationHook.attributeNamePatterns.put(AttributeDefName.FIELD_DESCRIPTION, Pattern.compile("^" + StemAttributeNameValidationHook.TEST_PATTERN + "$"));
-        AttributeDefAttributeNameValidationHook.attributeNameRegexes.put(AttributeDefName.FIELD_DESCRIPTION, "^" + GroupAttributeNameValidationHook.TEST_PATTERN + "$");
-        AttributeDefAttributeNameValidationHook.attributeNameVetoMessages.put(AttributeDefName.FIELD_DESCRIPTION, "Attribute description cannot have the value: '$attributeValue$'");
-        
+        AttributeDefAttributeNameValidationHook.addAttributeNameData(
+                AttributeDefName.FIELD_DESCRIPTION,
+                "^" + AttributeDefAttributeNameValidationHook.TEST_PATTERN + "$",
+                "Attribute description cannot have the value: '$attributeValue$'",
+                "Test class " + this.getClass().getName());
+
         //put this in try/catch in case storing on setters
         //add the attribute
         attributeDef.setDescription("whatever");
@@ -104,16 +106,13 @@ public class AttributeDefAttributeNameValidationHookTest extends GrouperTest {
         //this is a success, it is supposed to veto  
       }
       
-      attributeDef.setDescription(GroupAttributeNameValidationHook.TEST_PATTERN);
+      attributeDef.setDescription(AttributeDefAttributeNameValidationHook.TEST_PATTERN);
       
       attributeDef.store();
     
       //should be fine
     } finally {
-      AttributeDefAttributeNameValidationHook.attributeNamePatterns.remove(AttributeDefName.FIELD_DESCRIPTION);
-      AttributeDefAttributeNameValidationHook.attributeNameRegexes.remove(AttributeDefName.FIELD_DESCRIPTION);
-      AttributeDefAttributeNameValidationHook.attributeNameVetoMessages.remove(AttributeDefName.FIELD_DESCRIPTION);
-      
+      AttributeDefAttributeNameValidationHook.removeAttributeNameData(AttributeDefName.FIELD_DESCRIPTION);
     }
   
   }

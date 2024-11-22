@@ -84,11 +84,12 @@ public class StemAttributeNameValidationHookTest extends GrouperTest {
   
     try {
       try {
-        
-        StemAttributeNameValidationHook.attributeNamePatterns.put(Stem.FIELD_DESCRIPTION, Pattern.compile("^" + StemAttributeNameValidationHook.TEST_PATTERN + "$"));
-        StemAttributeNameValidationHook.attributeNameRegexes.put(Stem.FIELD_DESCRIPTION, "^" + GroupAttributeNameValidationHook.TEST_PATTERN + "$");
-        StemAttributeNameValidationHook.attributeNameVetoMessages.put(Stem.FIELD_DESCRIPTION, "Attribute description cannot have the value: '$attributeValue$'");
-        
+        StemAttributeNameValidationHook.addAttributeNameData(
+                Stem.FIELD_DESCRIPTION,
+                "^" + StemAttributeNameValidationHook.TEST_PATTERN + "$",
+                "Attribute description cannot have the value: '$attributeValue$'",
+                "Test class " + this.getClass().getName());
+
         //put this in try/catch in case storing on setters
         //add the attribute
         stem.setDescription("whatever");
@@ -99,16 +100,13 @@ public class StemAttributeNameValidationHookTest extends GrouperTest {
         //this is a success, it is supposed to veto  
       }
       
-      stem.setDescription(GroupAttributeNameValidationHook.TEST_PATTERN);
+      stem.setDescription(StemAttributeNameValidationHook.TEST_PATTERN);
       
       stem.store();
     
       //should be fine
     } finally {
-      StemAttributeNameValidationHook.attributeNamePatterns.remove(Stem.FIELD_DESCRIPTION);
-      StemAttributeNameValidationHook.attributeNameRegexes.remove(Stem.FIELD_DESCRIPTION);
-      StemAttributeNameValidationHook.attributeNameVetoMessages.remove(Stem.FIELD_DESCRIPTION);
-      
+      StemAttributeNameValidationHook.removeAttributeNameData(Stem.FIELD_DESCRIPTION);
     }
   
   }
