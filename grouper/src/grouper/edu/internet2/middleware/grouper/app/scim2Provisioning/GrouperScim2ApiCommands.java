@@ -33,6 +33,37 @@ public class GrouperScim2ApiCommands {
     
     GrouperStartup.startup();
     
+
+
+    GrouperScim2User scimUser = retrieveScimUser("serviceNowReal", "id", "00003f9787005210cd2c41d6cebb35f5", null);
+    
+    
+    Map<String, ProvisioningObjectChangeAction> fieldToAction = new HashMap<String, ProvisioningObjectChangeAction>();
+//    fieldToAction.put("manager_uuid", ProvisioningObjectChangeAction.update);
+//    fieldToAction.put("department_uuid", ProvisioningObjectChangeAction.update);
+    fieldToAction.put("emailValue", ProvisioningObjectChangeAction.update);
+    
+    scimUser.setEmailValue("tmurra26@test.edu");
+    
+//    scimUser.setCustomAttributes(new HashMap<>());
+//    scimUser.setCustomAttributeNameToJsonPointer(new HashMap<>());
+    
+    ///urn:ietf:params:scim:schemas:extension:servicenow:2.0:User/manager/value
+//    scimUser.getCustomAttributeNameToJsonPointer().put("manager_uuid", "/urn:ietf:params:scim:schemas:extension:servicenow:2.0:User/manager/value");
+//    scimUser.getCustomAttributeNameToJsonPointer().put("department_uuid", "/urn:ietf:params:scim:schemas:extension:servicenow:2.0:User/department/value");
+//    scimUser.getCustomAttributes().put("manager_uuid", "42d96d076fbce200db62358fae3ee452");
+//    scimUser.getCustomAttributes().put("department_uuid", "f7852b636f53150014ddc6012e3ee40a");
+    
+    String scimNamePatchStrategy = "qualified";
+    
+    ScimSettings scimSettings = new ScimSettings();
+    scimSettings.setScimEmailPatchStrategy("pathEmailsQualified");
+//    scimSettings.setOrgName(orgNameThreadLocal.get());
+//    scimSettings.setScimNamePatchStrategy(scimNamePatchStrategy);
+//    scimSettings.setAcceptHeader(scimConfiguration.getAcceptHeader());
+    
+    patchScimUser("serviceNowReal", scimUser, fieldToAction, scimSettings);
+    
 //    for (int i=10;i<60;i++) {
 //      GrouperScim2User grouperScimUser = new GrouperScim2User();
 //      grouperScimUser.setActive(true);
@@ -69,6 +100,8 @@ public class GrouperScim2ApiCommands {
 //    
 //      grouperScimUser = retrieveScimUser("githubLocal",null, "id", "4a16500367134ad0954d0612d8203b56");
 //      System.out.println(grouperScimUser);
+    
+      System.exit(0);
 
     
   }
@@ -239,17 +272,17 @@ public class GrouperScim2ApiCommands {
         //    "value": "false"
         //  }
 
+        ObjectNode operationNode = GrouperUtil.jsonJacksonNode();
+        
         ProvisioningObjectChangeAction resultingAction = null;
         if (emailValueChangeAction == ProvisioningObjectChangeAction.delete && emailValue2ChangeAction == ProvisioningObjectChangeAction.delete) {
           resultingAction = ProvisioningObjectChangeAction.delete;
+          operationNode.put("path", "emails");
         } else if (emailValueChangeAction == ProvisioningObjectChangeAction.insert && emailValue2ChangeAction == ProvisioningObjectChangeAction.insert) {
           resultingAction = ProvisioningObjectChangeAction.insert;
         } else {
           resultingAction = ProvisioningObjectChangeAction.update;
         }
-
-        ObjectNode operationNode = GrouperUtil.jsonJacksonNode();
-        operationNode.put("path", "emails");
 
         if (resultingAction == ProvisioningObjectChangeAction.delete) {
           
@@ -257,34 +290,176 @@ public class GrouperScim2ApiCommands {
           
         } else {
           
-          boolean hasEmail = !StringUtils.isBlank(grouperScim2User.getEmailValue());
-          boolean hasEmail2 = !StringUtils.isBlank(grouperScim2User.getEmailValue2());
-          
-          operationNode.put("op", "replace");
-          ArrayNode emailsNode = GrouperUtil.jsonJacksonArrayNode();
-          
-          if (hasEmail) {
-            ObjectNode emailNode = GrouperUtil.jsonJacksonNode();
-            emailNode.put("primary", true);
-            emailNode.put("value", grouperScim2User.getEmailValue());
-            if (!StringUtils.isBlank(grouperScim2User.getEmailType())) {
-              emailNode.put("type", grouperScim2User.getEmailType());
-            }
-            emailsNode.add(emailNode);
-          }
-          if (hasEmail2) {
-            ObjectNode emailNode = GrouperUtil.jsonJacksonNode();
-            if (!hasEmail) {
+          if (resultingAction == ProvisioningObjectChangeAction.insert || StringUtils.equals(scimSettings.getScimEmailPatchStrategy(), "pathEmails")) {
+            operationNode.put("path", "emails");
+            boolean hasEmail = !StringUtils.isBlank(grouperScim2User.getEmailValue());
+            boolean hasEmail2 = !StringUtils.isBlank(grouperScim2User.getEmailValue2());
+            
+            operationNode.put("op", "replace");
+            ArrayNode emailsNode = GrouperUtil.jsonJacksonArrayNode();
+            
+            if (hasEmail) {
+              ObjectNode emailNode = GrouperUtil.jsonJacksonNode();
               emailNode.put("primary", true);
+              emailNode.put("value", grouperScim2User.getEmailValue());
+              if (!StringUtils.isBlank(grouperScim2User.getEmailType())) {
+                emailNode.put("type", grouperScim2User.getEmailType());
+              }
+              emailsNode.add(emailNode);
             }
-            emailNode.put("value", grouperScim2User.getEmailValue2());
-            if (!StringUtils.isBlank(grouperScim2User.getEmailType2())) {
-              emailNode.put("type", grouperScim2User.getEmailType2());
+            if (hasEmail2) {
+              ObjectNode emailNode = GrouperUtil.jsonJacksonNode();
+              if (!hasEmail) {
+                emailNode.put("primary", true);
+              }
+              emailNode.put("value", grouperScim2User.getEmailValue2());
+              if (!StringUtils.isBlank(grouperScim2User.getEmailType2())) {
+                emailNode.put("type", grouperScim2User.getEmailType2());
+              }
+              emailsNode.add(emailNode);
             }
-            emailsNode.add(emailNode);
+            
+            operationNode.set("value", emailsNode);
+          } else if (StringUtils.equals(scimSettings.getScimEmailPatchStrategy(), "noPath"))  {
+            
+            boolean hasEmail = !StringUtils.isBlank(grouperScim2User.getEmailValue());
+            boolean hasEmail2 = !StringUtils.isBlank(grouperScim2User.getEmailValue2());
+            
+            operationNode.put("op", "replace");
+            
+            ObjectNode valueNode = GrouperUtil.jsonJacksonNode();
+            operationNode.set("value", valueNode);
+            
+            ArrayNode emailsNode = GrouperUtil.jsonJacksonArrayNode();
+            valueNode.set("emails", emailsNode);
+            
+            if (hasEmail) {
+              ObjectNode emailNode = GrouperUtil.jsonJacksonNode();
+              emailNode.put("primary", true);
+              emailNode.put("value", grouperScim2User.getEmailValue());
+              if (!StringUtils.isBlank(grouperScim2User.getEmailType())) {
+                emailNode.put("type", grouperScim2User.getEmailType());
+              }
+              emailsNode.add(emailNode);
+            }
+            if (hasEmail2) {
+              ObjectNode emailNode = GrouperUtil.jsonJacksonNode();
+              if (!hasEmail) {
+                emailNode.put("primary", true);
+              }
+              emailNode.put("value", grouperScim2User.getEmailValue2());
+              if (!StringUtils.isBlank(grouperScim2User.getEmailType2())) {
+                emailNode.put("type", grouperScim2User.getEmailType2());
+              }
+              emailsNode.add(emailNode);
+          } else if (StringUtils.equals(scimSettings.getScimEmailPatchStrategy(), "noPath"))  {
+            
+            boolean hasEmail = !StringUtils.isBlank(grouperScim2User.getEmailValue());
+            boolean hasEmail2 = !StringUtils.isBlank(grouperScim2User.getEmailValue2());
+            
+            operationNode.put("op", "replace");
+            
+            ObjectNode valueNode = GrouperUtil.jsonJacksonNode();
+            operationNode.set("value", valueNode);
+            
+            ArrayNode emailsNode = GrouperUtil.jsonJacksonArrayNode();
+            valueNode.set("emails", emailsNode);
+            
+            if (hasEmail) {
+              ObjectNode emailNode = GrouperUtil.jsonJacksonNode();
+              emailNode.put("primary", true);
+              emailNode.put("value", grouperScim2User.getEmailValue());
+              if (!StringUtils.isBlank(grouperScim2User.getEmailType())) {
+                emailNode.put("type", grouperScim2User.getEmailType());
+              }
+              emailsNode.add(emailNode);
+            }
+            if (hasEmail2) {
+              ObjectNode emailNode = GrouperUtil.jsonJacksonNode();
+              if (!hasEmail) {
+                emailNode.put("primary", true);
+              }
+              emailNode.put("value", grouperScim2User.getEmailValue2());
+              if (!StringUtils.isBlank(grouperScim2User.getEmailType2())) {
+                emailNode.put("type", grouperScim2User.getEmailType2());
+              }
+              emailsNode.add(emailNode);
+            }
+            
+          } else if (StringUtils.equals(scimSettings.getScimEmailPatchStrategy(), "pathEmailsQualified"))  {
+            
+            /**
+             * {
+                  
+                  {
+                    "op": "replace",
+                    "path": "emails[type eq \"work\"].value",
+                    "value": "mjaden2@huskers.unl.edu"
+                  }
+                  
+              } 
+             */
+            
+            boolean hasEmail = !StringUtils.isBlank(grouperScim2User.getEmailValue());
+            boolean hasEmail2 = !StringUtils.isBlank(grouperScim2User.getEmailValue2());
+            
+            operationNode.put("op", "replace");
+            
+            if (hasEmail) {
+              operationNode.put("value", grouperScim2User.getEmailValue());
+              String emailType = StringUtils.defaultIfBlank(grouperScim2User.getEmailType(), "work");
+              operationNode.put("path", "emails[type eq \""+emailType+"\"].value");
+            }
+            if (hasEmail2) {
+              ObjectNode operationNode2 = hasEmail ?  GrouperUtil.jsonJacksonNode(): operationNode;
+              operationNode2.put("value", grouperScim2User.getEmailValue2());
+              String emailType = StringUtils.defaultIfBlank(grouperScim2User.getEmailType2(), "work");
+              operationNode2.put("path", "emails[type eq \""+emailType+"\"].value");
+              
+              if (hasEmail) {
+                operationsNode.add(operationNode2);
+            }
+            
+          } else if (StringUtils.equals(scimSettings.getScimEmailPatchStrategy(), "pathEmailsQualified"))  {
+            
+            /**
+             * {
+                  
+                  {
+                    "op": "replace",
+                    "path": "emails[type eq \"work\"].value",
+                    "value": "mjaden2@huskers.unl.edu"
+                  }
+                  
+              } 
+             */
+            
+            boolean hasEmail = !StringUtils.isBlank(grouperScim2User.getEmailValue());
+            boolean hasEmail2 = !StringUtils.isBlank(grouperScim2User.getEmailValue2());
+            
+            operationNode.put("op", "replace");
+            
+            if (hasEmail) {
+              operationNode.put("value", grouperScim2User.getEmailValue());
+              String emailType = StringUtils.defaultIfBlank(grouperScim2User.getEmailType(), "work");
+              operationNode.put("path", "emails[type eq \""+emailType+"\"].value");
+            }
+            if (hasEmail2) {
+              ObjectNode operationNode2 = hasEmail ?  GrouperUtil.jsonJacksonNode(): operationNode;
+              operationNode2.put("value", grouperScim2User.getEmailValue2());
+              String emailType = StringUtils.defaultIfBlank(grouperScim2User.getEmailType2(), "work");
+              operationNode2.put("path", "emails[type eq \""+emailType+"\"].value");
+              
+              if (hasEmail) {
+                operationsNode.add(operationNode2);
+              }
+            
+            }
+            
+          } else {
+            throw new RuntimeException("Invalid scimEmailPatchStrategy: '"+scimSettings.getScimEmailPatchStrategy()+"'");
           }
           
-          operationNode.set("value", emailsNode);
         }
         operationsNode.add(operationNode);
         
@@ -623,7 +798,7 @@ public class GrouperScim2ApiCommands {
 
     if (!StringUtils.isBlank(body)) {
       if (httpMethodName.supportsRequestBody()) {
-        grouperHttpClient.addHeader("Content-type", "application/json");
+        grouperHttpClient.addHeader("Content-type", scimSettings.getScimContentType());
         grouperHttpClient.assignBody(body);
       } else {
         throw new RuntimeException("Cant attach a body if in method: " + httpMethodName);
