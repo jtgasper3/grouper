@@ -90,8 +90,12 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
       scimSettings.setScimContentType(scimConfiguration.getScimContentType());
 
       List<GrouperScim2Group> grouperScim2Groups = GrouperScim2ApiCommands
+<<<<<<< GROUPER_4_BRANCH
           .retrieveScimGroups(scimConfiguration.getBearerTokenExternalSystemConfigId(), 
               scimConfiguration.getAcceptHeader(), groupIdToMembershipEntityIds);
+=======
+          .retrieveScimGroups(scimSettings, scimConfiguration.getBearerTokenExternalSystemConfigId(), groupIdToMembershipEntityIds);
+>>>>>>> ed02c78 make scim changes backwards compatible
 
       for (GrouperScim2Group grouperScim2Group : grouperScim2Groups) {
         
@@ -130,7 +134,11 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
       scimSettings.setScimContentType(scimConfiguration.getScimContentType());
 
       List<GrouperScim2User> grouperScim2Users = GrouperScim2ApiCommands
+<<<<<<< GROUPER_4_BRANCH
           .retrieveScimUsers(scimConfiguration.getBearerTokenExternalSystemConfigId(), scimConfiguration.getAcceptHeader());
+=======
+          .retrieveScimUsers(scimSettings, scimConfiguration.getBearerTokenExternalSystemConfigId());
+>>>>>>> ed02c78 make scim changes backwards compatible
 
       Map<ProvisioningEntity, Object> targetEntityToNativeEntity = new HashMap<>();
       
@@ -319,8 +327,12 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
         targetProvisioningGroup.setId(orgInUrl);
         githubOrgs_orgIdToProvisioningGroup.put(orgInUrl, targetProvisioningGroup);
 
+<<<<<<< GROUPER_4_BRANCH
         List<GrouperScim2User> grouperScim2Users = GrouperScim2ApiCommands.retrieveScimUsers(scimConfiguration.getBearerTokenExternalSystemConfigId(), 
             scimConfiguration.getAcceptHeader(), orgInUrl);
+=======
+        List<GrouperScim2User> grouperScim2Users = GrouperScim2ApiCommands.retrieveScimUsers(scimSettings, scimConfiguration.getBearerTokenExternalSystemConfigId());
+>>>>>>> ed02c78 make scim changes backwards compatible
 
         List<ProvisioningEntity> targetEntities = new ArrayList<>();
         
