@@ -42,6 +42,7 @@ import edu.internet2.middleware.grouper.abac.GrouperAbac;
 import edu.internet2.middleware.grouper.app.loader.GrouperLoader;
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderDisplayNameSyncType;
+import edu.internet2.middleware.grouper.app.loader.GrouperLoaderJob;
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderScheduleType;
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderType;
 import edu.internet2.middleware.grouper.app.loader.db.GrouperLoaderDb;
@@ -3124,7 +3125,17 @@ public class UiV2GrouperLoader {
             loaderReport.append("<font color='red'>ERROR:</font> SQL query is not set!\n");
             fatal = true;
           } else {
-            loaderReport.append("<font color='blue'>NOTE:</font> SQL query is set to '" + grouperLoaderContainer.getSqlQuery() + "'\n");
+            String sqlQuery = grouperLoaderContainer.getSqlQuery();
+            String sqlQuerySubstituted = GrouperLoaderJob.substituteExpression(sqlQuery);
+            if (!StringUtils.equals(sqlQuery, sqlQuerySubstituted)) {
+              loaderReport.append("<font color='blue'>NOTE:</font> SQL query is set to '" + sqlQuery + "'\n");
+              loaderReport.append("<font color='blue'>NOTE:</font> SQL query (substituted) is '" 
+                  + sqlQuerySubstituted + (grouperLoaderType == GrouperLoaderType.SQL_GROUP_LIST ? " order by group_name" : "") + "'\n");
+            } else {
+              loaderReport.append("<font color='blue'>NOTE:</font> SQL query is set to '" 
+                  + sqlQuery + (grouperLoaderType == GrouperLoaderType.SQL_GROUP_LIST ? " order by group_name" : "")+ "'\n");
+              
+            }
           }
         } 
         
@@ -3316,8 +3327,10 @@ public class UiV2GrouperLoader {
           long startNanos = System.nanoTime();
   
           try {
+            String sqlQuery = grouperLoaderContainer.getSqlQuery();
+            sqlQuery = GrouperLoaderJob.substituteExpression(sqlQuery);
             grouperLoaderResultset = new GrouperLoaderResultset(
-                grouperLoaderDb, grouperLoaderContainer.getSqlQuery() + (grouperLoaderType == GrouperLoaderType.SQL_GROUP_LIST ? " order by group_name" : ""), 
+                grouperLoaderDb, sqlQuery + (grouperLoaderType == GrouperLoaderType.SQL_GROUP_LIST ? " order by group_name" : ""), 
                 grouperLoaderContainer.getJobName(), 
                 new Hib3GrouperLoaderLog());
             loaderReport.append("<font color='green'>SUCCESS:</font> Ran query, got " + grouperLoaderResultset.numberOfRows()
