@@ -4895,13 +4895,13 @@ public class GrouperServiceLogic {
   //   * @param actAsSubjectId
   //   *            optional: is the subject id of subject to act as (if
   //   *            proxying). Only pass one of actAsSubjectId or
-   * actAsSubjectIdentifier
+  //   * actAsSubjectIdentifier
   //   * @param actAsSubjectSourceId is source of act as subject to narrow the result and prevent
   //   * duplicates
   //   * @param actAsSubjectIdentifier
   //   *            optional: is the subject identifier of subject to act as (if
   //   *            proxying). Only pass one of actAsSubjectId or
-   * actAsSubjectIdentifier
+  //   * actAsSubjectIdentifier
   //   * @param paramName0
   //   *            reserved for future use
   //   * @param paramValue0
@@ -4974,13 +4974,13 @@ public class GrouperServiceLogic {
      * @param actAsSubjectId
      *            optional: is the subject id of subject to act as (if
      *            proxying). Only pass one of actAsSubjectId or
-   * actAsSubjectIdentifier
+     * actAsSubjectIdentifier
      * @param actAsSubjectSourceId is source of act as subject to narrow the result and prevent
      * duplicates
      * @param actAsSubjectIdentifier
      *            optional: is the subject identifier of subject to act as (if
      *            proxying). Only pass one of actAsSubjectId or
-   * actAsSubjectIdentifier
+     * actAsSubjectIdentifier
      * @param privilegeType (e.g. "access" for groups and "naming" for stems)
      * @param privilegeName (e.g. for groups: read, view, update, admin, optin, optout.  e.g. for stems:
      * stem, create)
@@ -5308,13 +5308,13 @@ public class GrouperServiceLogic {
      * @param actAsSubjectId
      *            optional: is the subject id of subject to act as (if
      *            proxying). Only pass one of actAsSubjectId or
-   * actAsSubjectIdentifier
+     * actAsSubjectIdentifier
      * @param actAsSubjectSourceId is source of act as subject to narrow the result and prevent
      * duplicates
      * @param actAsSubjectIdentifier
      *            optional: is the subject identifier of subject to act as (if
      *            proxying). Only pass one of actAsSubjectId or
-   * actAsSubjectIdentifier
+     * actAsSubjectIdentifier
      * @param fieldName is if the memberships should be retrieved from a certain field membership
      * of the group (certain list)
      * @param subjectAttributeNames are the additional subject attributes (data) to return.
@@ -5643,13 +5643,13 @@ public class GrouperServiceLogic {
     //   * @param actAsSubjectId
     //   *            optional: is the subject id of subject to act as (if
     //   *            proxying). Only pass one of actAsSubjectId or
-   * actAsSubjectIdentifier
+    //   * actAsSubjectIdentifier
     //   * @param actAsSubjectSourceId is source of act as subject to narrow the result and prevent
     //   * duplicates
     //   * @param actAsSubjectIdentifier
     //   *            optional: is the subject identifier of subject to act as (if
     //   *            proxying). Only pass one of actAsSubjectId or
-   * actAsSubjectIdentifier
+    //   * actAsSubjectIdentifier
     //   * @param paramName0
     //   *            reserved for future use
     //   * @param paramValue0
