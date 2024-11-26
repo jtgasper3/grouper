@@ -395,6 +395,13 @@ public class GcGrouperSyncDependencyGroupGroupDao {
   
   }
 
+  public static int deleteByGroupId(String groupId) {
+    
+    return new GcDbAccess().sql("delete from grouper_sync_dep_group_group where group_id = ? or provisionable_group_id = ?")
+        .addBindVar(groupId).addBindVar(groupId).executeSql();
+    
+  }
+
 //  /**
 //   * select grouper sync dependency group groups by group ids
 //   * @param groupIdsCollection

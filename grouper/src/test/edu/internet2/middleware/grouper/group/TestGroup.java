@@ -105,7 +105,13 @@ import edu.internet2.middleware.grouper.misc.SaveMode;
 import edu.internet2.middleware.grouper.privs.AccessPrivilege;
 import edu.internet2.middleware.grouper.privs.AttributeDefPrivilege;
 import edu.internet2.middleware.grouper.privs.NamingPrivilege;
+import edu.internet2.middleware.grouper.tableIndex.TableIndex;
+import edu.internet2.middleware.grouper.tableIndex.TableIndexType;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
+import edu.internet2.middleware.grouperClient.jdbc.tableSync.GcGrouperSync;
+import edu.internet2.middleware.grouperClient.jdbc.tableSync.GcGrouperSyncDao;
+import edu.internet2.middleware.grouperClient.jdbc.tableSync.GcGrouperSyncDependencyGroupGroup;
+import edu.internet2.middleware.grouperClient.jdbc.tableSync.GcGrouperSyncDependencyGroupGroupDao;
 import edu.internet2.middleware.subject.Subject;
 import junit.framework.Assert;
 import junit.textui.TestRunner;
@@ -123,11 +129,33 @@ public class TestGroup extends GrouperTest {
    * @param args
    */
   public static void main(String[] args) {
-    TestRunner.run(new TestGroup("testGroupSave"));
+    TestRunner.run(new TestGroup("testGroupDeleteWithDependencies"));
     //TestRunner.run(new TestGroup("testReadonlyViewonlyAdmin"));
     //TestRunner.run(TestGroup.class);
   }
 
+  public void testGroupDeleteWithDependencies() {
+    
+    Group group = new GroupSave().assignName("test:testGroup").assignCreateParentStemsIfNotExist(true).save();
+    
+    GcGrouperSyncDependencyGroupGroup gcGrouperSyncDependencyGroupGroup = new GcGrouperSyncDependencyGroupGroup();
+    GcGrouperSync gcGrouperSync = GcGrouperSyncDao.retrieveOrCreateByProvisionerName("test");
+    
+    gcGrouperSyncDependencyGroupGroup.setFieldId(Group.getDefaultList().getId());
+    gcGrouperSyncDependencyGroupGroup.setGrouperSync(gcGrouperSync);
+    
+    gcGrouperSyncDependencyGroupGroup.setGroupId(group.getId());
+    gcGrouperSyncDependencyGroupGroup.assignIdIndexForInsert(TableIndex.reserveId(TableIndexType.syncDepGroup));
+
+
+    gcGrouperSyncDependencyGroupGroup.setProvisionableGroupId(group.getId());
+
+    gcGrouperSync.getGcGrouperSyncDependencyGroupGroupDao().internal_dependencyGroupGroupStore(gcGrouperSyncDependencyGroupGroup);
+
+    group.delete();
+    
+  }
+  
   public void testGroupCopyCollision() {
     
     Stem stem = new StemSave().assignName("test").save();

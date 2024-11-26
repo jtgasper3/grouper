@@ -94,6 +94,8 @@ import edu.internet2.middleware.grouper.privs.AttributeDefPrivilege;
 import edu.internet2.middleware.grouper.privs.Privilege;
 import edu.internet2.middleware.grouper.subj.SubjectHelper;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
+import edu.internet2.middleware.grouperClient.jdbc.tableSync.GcGrouperSyncDependencyGroupGroupDao;
+import edu.internet2.middleware.grouperClient.jdbc.tableSync.GcGrouperSyncDependencyGroupUserDao;
 import edu.internet2.middleware.subject.Subject;
 import edu.internet2.middleware.subject.SubjectUtils;
 
@@ -197,6 +199,9 @@ public class Hib3GroupDAO extends Hib3DAO implements GroupDAO {
             // delete group sets
             GrouperDAOFactory.getFactory().getGroupSet().deleteSelfByOwnerGroup(_g);
 
+            GcGrouperSyncDependencyGroupGroupDao.deleteByGroupId(_g.getId());
+            GcGrouperSyncDependencyGroupUserDao.deleteByGroupId(_g.getId());
+            
             // delete group
             byObject.delete( _g );
             
