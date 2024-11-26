@@ -456,26 +456,26 @@ public class UiV2Admin extends UiServiceLogicBase {
 
           //ok lets do paging
           GuiPaging guiPaging = adminContainer.getDaemonJobsGuiPaging();
-          GrouperPagingTag2.processRequest(request, guiPaging, null);
+          GrouperPagingTag2.processRequest(request, guiPaging, null, "pager.pagesize.daemon.default");
           guiPaging.setTotalRecordCount(guiDaemonJobs.size());
 
           // screen is too slow so let's fetch only 10 records
-          String pageSizeString = request.getParameter("pagingTagPageSize");
-          if (StringUtils.isBlank(pageSizeString) && guiPaging.getPageSize() > 10) {
-            guiPaging.setPageSize(10);
-          }
+//          String pageSizeString = request.getParameter("pagingTagPageSize");
+//          if (StringUtils.isBlank(pageSizeString) && guiPaging.getPageSize() > 10) {
+//            guiPaging.setPageSize(10);
+//          }
 
           guiDaemonJobs = GrouperUtil.batchList(guiDaemonJobs, guiPaging.getPageSize(), (guiPaging.getPageNumber() - 1));
         } else {
           GuiPaging guiPaging = adminContainer.getDaemonJobsGuiPaging();
-          GrouperPagingTag2.processRequest(request, guiPaging, null);
+          GrouperPagingTag2.processRequest(request, guiPaging, null, "pager.pagesize.daemon.default");
           guiPaging.setTotalRecordCount(allJobNamesAfterFilter.size());
 
           // screen is too slow so let's fetch only 10 records
-          String pageSizeString = request.getParameter("pagingTagPageSize");
-          if (StringUtils.isBlank(pageSizeString) && guiPaging.getPageSize() > 10) {
-            guiPaging.setPageSize(10);
-          }
+//          String pageSizeString = request.getParameter("pagingTagPageSize");
+//          if (StringUtils.isBlank(pageSizeString) && guiPaging.getPageSize() > 10) {
+//            guiPaging.setPageSize(10);
+//          }
 
           List<String> currentJobNames = GrouperUtil.batchList(allJobNamesAfterFilter, guiPaging.getPageSize(), (guiPaging.getPageNumber() - 1));
 
