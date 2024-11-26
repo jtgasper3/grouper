@@ -132,7 +132,7 @@ public class TestGrouperSourceAdapter extends GrouperTest {
     catch (SubjectNotUniqueException eSNU) {
       T.e(eSNU);
     }
-  } // public void testAdapterBadSubjectByIdentifer() 
+  } // public void testAdapterBadSubjectByIdentifier() 
 
   public void testSearch_BlankParameter() {
     try {

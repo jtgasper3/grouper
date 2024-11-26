@@ -92,23 +92,23 @@ public class EsbListener {
 		for(int i=0; i<groups.length;i++ ) {
 			Group group = null;
 			String[] thisGroup = groups[i];
-			String groupIdentifer = thisGroup[0];
+			String groupIdentifier = thisGroup[0];
 			String searchType = thisGroup[1];
 			if(searchType.equals("id")) {
 				if(LOG.isDebugEnabled()) {
-					LOG.debug("Finding group by id " + groupIdentifer);
+					LOG.debug("Finding group by id " + groupIdentifier);
 				}
-				group = GroupFinder.findByUuid(grouperSession, groupIdentifer, false);
+				group = GroupFinder.findByUuid(grouperSession, groupIdentifier, false);
 			} else if (searchType.equals("name")) {
 				if(LOG.isDebugEnabled()) {
-					LOG.debug("Finding group by name " + groupIdentifer);
+					LOG.debug("Finding group by name " + groupIdentifier);
 				}
-				group = GroupFinder.findByName(grouperSession, groupIdentifer, false);
+				group = GroupFinder.findByName(grouperSession, groupIdentifier, false);
 			} else {
 				if(LOG.isDebugEnabled()) {
-					LOG.debug("Finding group by " + searchType + " "+ groupIdentifer);
+					LOG.debug("Finding group by " + searchType + " "+ groupIdentifier);
 				}
-				group = GroupFinder.findByAttribute(grouperSession, searchType, groupIdentifer, false);
+				group = GroupFinder.findByAttribute(grouperSession, searchType, groupIdentifier, false);
 			}
 			if(group!=null) {
 				if(addOp) {
@@ -126,9 +126,9 @@ public class EsbListener {
 				}
 			} else {
 				if(LOG.isDebugEnabled()) {
-					LOG.debug("Group id " + groupIdentifer + " not found");
+					LOG.debug("Group id " + groupIdentifier + " not found");
 				}
-				return "Group id " + groupIdentifer + " not found\r\n";
+				return "Group id " + groupIdentifier + " not found\r\n";
 			}
 		}
 		return returnMessage;

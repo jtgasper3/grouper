@@ -1114,7 +1114,7 @@ public class SubjectSourceCache {
           if (LOG.isDebugEnabled()) {
             debugMap.put("identifierNotConfigured", idOrIdentifier);
           }
-          if (SubjectConfig.retrieveConfig().propertyValueBoolean("subject.cache.logWarnIfIdentiferNotConfigured")) {
+          if (SubjectConfig.retrieveConfig().propertyValueBoolean("subject.cache.logWarnIfIdentifierNotConfigured")) {
             LOG.warn("In subject source: " + subject.getSourceId() + " the identifier: '" + idOrIdentifier + "' can find subject: '" + subject.getId() + "', but the attribute for that identifier is not configured in the subject source.  In order for caching to be effective, please list all identifier attributes in the subject source.  You can configure to suppress this log message in subject config.");
           }
         }

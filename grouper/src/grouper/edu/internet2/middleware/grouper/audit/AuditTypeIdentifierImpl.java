@@ -23,7 +23,7 @@ package edu.internet2.middleware.grouper.audit;
 /**
  *
  */
-public class AuditTypeIdentiferImpl implements AuditTypeIdentifier {
+public class AuditTypeIdentifierImpl implements AuditTypeIdentifier {
 
   /** action name */
   private String actionName;
@@ -35,7 +35,7 @@ public class AuditTypeIdentiferImpl implements AuditTypeIdentifier {
    * @param actionName1
    * @param auditCategory1
    */
-  public AuditTypeIdentiferImpl(String actionName1, String auditCategory1) {
+  public AuditTypeIdentifierImpl(String actionName1, String auditCategory1) {
     super();
     this.actionName = actionName1;
     this.auditCategory = auditCategory1;

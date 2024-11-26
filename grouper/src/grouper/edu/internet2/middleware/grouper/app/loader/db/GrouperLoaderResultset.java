@@ -180,16 +180,16 @@ public class GrouperLoaderResultset {
         }
       }
       String sourceId = null;
-      String subjectIdOrIdentifer = null;
+      String subjectIdOrIdentifier = null;
       if (!StringUtils.isBlank(sourceIdCol)) {
         sourceId = (String) row.getCell(
             GrouperLoaderResultset.SUBJECT_SOURCE_ID_COL, false);
       }
       //default this to what is in the config file
       sourceId = StringUtils.defaultString(sourceId, defaultSubjectSourceId);
-      subjectIdOrIdentifer = (String) row.getCell(subjectIdCol, false);
+      subjectIdOrIdentifier = (String) row.getCell(subjectIdCol, false);
 
-      if (StringUtils.isBlank(subjectIdOrIdentifer)) {
+      if (StringUtils.isBlank(subjectIdOrIdentifier)) {
         String debugInfo = ", valid rows so far: " + validRows + " of " + this.data.size() + ", columns: " 
             + GrouperUtil.toStringForLog(this.columnNames)  + " this row: " + GrouperUtil.toStringForLog(row.rowData);
 
@@ -207,10 +207,10 @@ public class GrouperLoaderResultset {
           throw new RuntimeException("Result has a null/blank subject_id, please correct the query (maybe just filter where subject_id is not null/blank.)" + debugInfo);
         }
         if (hasSubjectIdentifierCol) {
-          throw new RuntimeException("Result has a null/blank subject_identifer, please correct the query (maybe just filter where subject_identifier is not null/blank.)" + debugInfo);
+          throw new RuntimeException("Result has a null/blank subject_identifier, please correct the query (maybe just filter where subject_identifier is not null/blank.)" + debugInfo);
         }
         if (hasSubjectIdOrIdentifierCol) {
-          throw new RuntimeException("Result has a null/blank subject_id_or_identifer, please correct the query (maybe just filter where subject_id_or_identifier is not null/blank)" + debugInfo);
+          throw new RuntimeException("Result has a null/blank subject_id_or_identifier, please correct the query (maybe just filter where subject_id_or_identifier is not null/blank)" + debugInfo);
         }
         
         throw new RuntimeException(
@@ -226,10 +226,10 @@ public class GrouperLoaderResultset {
           subjectIdsOrIdentifiersForSource = new HashSet<String>();
           sourceToSubjectIdsOrIdentifiers.put(sourceId, subjectIdsOrIdentifiersForSource);
         }
-        subjectIdsOrIdentifiersForSource.add(subjectIdOrIdentifer);
+        subjectIdsOrIdentifiersForSource.add(subjectIdOrIdentifier);
       } else {
         //no source, just keep track of identifier
-        subjectIdsOrIdentifiers.add(subjectIdOrIdentifer);
+        subjectIdsOrIdentifiers.add(subjectIdOrIdentifier);
       }
 
     }
@@ -1554,10 +1554,10 @@ public class GrouperLoaderResultset {
             throw new RuntimeException("Result has a null subject_id, please correct the query (maybe just filter where subject_id is not null)");
           }
           if (hasSubjectIdentifierCol) {
-            throw new RuntimeException("Result has a null subject_identifer, please correct the query (maybe just filter where subject_identifier is not null)");
+            throw new RuntimeException("Result has a null subject_identifier, please correct the query (maybe just filter where subject_identifier is not null)");
           }
           if (hasSubjectIdOrIdentifierCol) {
-            throw new RuntimeException("Result has a null subject_id_or_identifer, please correct the query (maybe just filter where subject_id_or_identifier is not null)");
+            throw new RuntimeException("Result has a null subject_id_or_identifier, please correct the query (maybe just filter where subject_id_or_identifier is not null)");
           }
           
           throw new RuntimeException(

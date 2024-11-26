@@ -115,7 +115,7 @@ public class WsRestAssignGrouperPrivilegesLiteRequest implements WsRequestBean {
   /**
    * optional: is the subject id of subject to act as (if
    * proxying). Only pass one of actAsSubjectId or
-   * actAsSubjectIdentifer
+   * actAsSubjectIdentifier
    */
   private String actAsSubjectId;
   
@@ -128,7 +128,7 @@ public class WsRestAssignGrouperPrivilegesLiteRequest implements WsRequestBean {
   /**
    * optional: is the subject identifier of subject to act as (if
    * proxying). Only pass one of actAsSubjectId or
-   * actAsSubjectIdentifer
+   * actAsSubjectIdentifier
    */
   private String actAsSubjectIdentifier;
   
@@ -333,7 +333,7 @@ public class WsRestAssignGrouperPrivilegesLiteRequest implements WsRequestBean {
   /**
    * optional: is the subject id of subject to act as (if
    * proxying). Only pass one of actAsSubjectId or
-   * actAsSubjectIdentifer
+   * actAsSubjectIdentifier
    * @return id
    */
   public String getActAsSubjectId() {
@@ -343,7 +343,7 @@ public class WsRestAssignGrouperPrivilegesLiteRequest implements WsRequestBean {
   /**
    * optional: is the subject id of subject to act as (if
    * proxying). Only pass one of actAsSubjectId or
-   * actAsSubjectIdentifer
+   * actAsSubjectIdentifier
    * @param actAsSubjectId1
    */
   public void setActAsSubjectId(String actAsSubjectId1) {
@@ -371,7 +371,7 @@ public class WsRestAssignGrouperPrivilegesLiteRequest implements WsRequestBean {
   /**
    * optional: is the subject identifier of subject to act as (if
    * proxying). Only pass one of actAsSubjectId or
-   * actAsSubjectIdentifer
+   * actAsSubjectIdentifier
    * @return id
    */
   public String getActAsSubjectIdentifier() {
@@ -381,7 +381,7 @@ public class WsRestAssignGrouperPrivilegesLiteRequest implements WsRequestBean {
   /**
    * optional: is the subject identifier of subject to act as (if
    * proxying). Only pass one of actAsSubjectId or
-   * actAsSubjectIdentifer
+   * actAsSubjectIdentifier
    * @param actAsSubjectIdentifier1
    */
   public void setActAsSubjectIdentifier(String actAsSubjectIdentifier1) {

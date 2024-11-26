@@ -145,7 +145,7 @@ public class TestInternalSourceAdapter extends GrouperTest {
     catch (SubjectNotUniqueException eSNU) {
       T.e(eSNU);
     }
-  } // public void testAdapterBadSubjectByIdentifer() 
+  } // public void testAdapterBadSubjectByIdentifier() 
 
   public void testAdapterBadSubjectBySearch() {
     LOG.info("testAdapterBadSubjectBySearch");

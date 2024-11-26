@@ -544,7 +544,7 @@ public class SqlProvisioningDao extends GrouperProvisionerTargetDaoBase {
         primaryTableWhereClause.add(new Object[] {groupIdentifierValueOld});
       }
 
-      // if the groupIdentiferNew and groupIdentifierOld do not match...
+      // if the groupIdentifierNew and groupIdentifierOld do not match...
       if (!GrouperUtil.equals(groupIdentifierValueNew, groupIdentifierValueOld) && sqlProvisioningConfiguration.isUseSeparateTableForGroupAttributes()) {
 
         List<Object[]> groupAttributesGroupForeignKeyColumnOld = new ArrayList<Object[]>();
@@ -825,7 +825,7 @@ public class SqlProvisioningDao extends GrouperProvisionerTargetDaoBase {
         primaryTableUpdates.add(mainData);
         primaryTableWhereClause.add(new Object[] {entityIdentifierValueOld});
       }
-      // if the groupIdentiferNew and groupIdentifierOld do not match...
+      // if the groupIdentifierNew and groupIdentifierOld do not match...
       if (!GrouperUtil.equals(entityIdentifierValueNew, entityIdentifierValueOld) && sqlProvisioningConfiguration.isUseSeparateTableForGroupAttributes()) {
 
         List<Object[]> entityAttributesEntityForeignKeyColumnOld = new ArrayList<Object[]>();
