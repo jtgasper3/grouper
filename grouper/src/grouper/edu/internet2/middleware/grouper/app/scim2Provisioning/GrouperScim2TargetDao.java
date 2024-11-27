@@ -78,8 +78,7 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
           .getGrouperProvisioner().retrieveGrouperProvisioningConfiguration();
 
       List<ProvisioningGroup> results = new ArrayList<ProvisioningGroup>();
-
-
+      
       String scimNamePatchStrategy = scimConfiguration.getScimNamePatchStrategy();
       
       ScimSettings scimSettings = new ScimSettings();
@@ -90,12 +89,7 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
       scimSettings.setScimContentType(scimConfiguration.getScimContentType());
 
       List<GrouperScim2Group> grouperScim2Groups = GrouperScim2ApiCommands
-<<<<<<< GROUPER_4_BRANCH
-          .retrieveScimGroups(scimConfiguration.getBearerTokenExternalSystemConfigId(), 
-              scimConfiguration.getAcceptHeader(), groupIdToMembershipEntityIds);
-=======
           .retrieveScimGroups(scimSettings, scimConfiguration.getBearerTokenExternalSystemConfigId(), groupIdToMembershipEntityIds);
->>>>>>> ed02c78 make scim changes backwards compatible
 
       for (GrouperScim2Group grouperScim2Group : grouperScim2Groups) {
         
@@ -122,8 +116,7 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
           .getGrouperProvisioner().retrieveGrouperProvisioningConfiguration();
 
       List<ProvisioningEntity> results = new ArrayList<ProvisioningEntity>();
-
-
+      
       String scimNamePatchStrategy = scimConfiguration.getScimNamePatchStrategy();
       
       ScimSettings scimSettings = new ScimSettings();
@@ -134,11 +127,7 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
       scimSettings.setScimContentType(scimConfiguration.getScimContentType());
 
       List<GrouperScim2User> grouperScim2Users = GrouperScim2ApiCommands
-<<<<<<< GROUPER_4_BRANCH
-          .retrieveScimUsers(scimConfiguration.getBearerTokenExternalSystemConfigId(), scimConfiguration.getAcceptHeader());
-=======
           .retrieveScimUsers(scimSettings, scimConfiguration.getBearerTokenExternalSystemConfigId());
->>>>>>> ed02c78 make scim changes backwards compatible
 
       Map<ProvisioningEntity, Object> targetEntityToNativeEntity = new HashMap<>();
       
@@ -231,8 +220,7 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
       GrouperScim2ProvisionerConfiguration scimConfiguration,
       ProvisioningEntity grouperTargetEntity, boolean filterInactive) {
     GrouperScim2User grouperScim2User = null;
-
-
+    
     String scimNamePatchStrategy = scimConfiguration.getScimNamePatchStrategy();
     
     ScimSettings scimSettings = new ScimSettings();
@@ -245,9 +233,7 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
     if (!StringUtils.isBlank(grouperTargetEntity.getId())) {
       grouperScim2User = GrouperScim2ApiCommands.retrieveScimUser(
           scimConfiguration.getBearerTokenExternalSystemConfigId(), 
-          scimConfiguration.getAcceptHeader(),
-          "id", 
-          grouperTargetEntity.getId(), null);
+          "id", grouperTargetEntity.getId(), scimSettings);
       if (filterInactive && grouperScim2User != null && !GrouperUtil.booleanValue(grouperScim2User.getActive(), true)) {
         grouperScim2User = null;
       }
@@ -258,7 +244,7 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
         .retrieveAttributeValueString("userName");
     if (grouperScim2User == null && !StringUtils.isBlank(userName)) {
       grouperScim2User = GrouperScim2ApiCommands.retrieveScimUser(
-          scimConfiguration.getBearerTokenExternalSystemConfigId(), scimConfiguration.getAcceptHeader(), "userName", userName, null);
+          scimConfiguration.getBearerTokenExternalSystemConfigId(), "userName", userName, scimSettings);
       if (filterInactive && grouperScim2User != null && !GrouperUtil.booleanValue(grouperScim2User.getActive(), true)) {
         grouperScim2User = null;
       }
@@ -309,7 +295,6 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
 
       boolean filterInactive = scimConfiguration.isDisableEntitiesInsteadOfDelete();
       
-
       String scimNamePatchStrategy = scimConfiguration.getScimNamePatchStrategy();
       
       ScimSettings scimSettings = new ScimSettings();
@@ -326,13 +311,10 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
         ProvisioningGroup targetProvisioningGroup = new ProvisioningGroup();
         targetProvisioningGroup.setId(orgInUrl);
         githubOrgs_orgIdToProvisioningGroup.put(orgInUrl, targetProvisioningGroup);
+        
+        scimSettings.setOrgName(orgInUrl);
 
-<<<<<<< GROUPER_4_BRANCH
-        List<GrouperScim2User> grouperScim2Users = GrouperScim2ApiCommands.retrieveScimUsers(scimConfiguration.getBearerTokenExternalSystemConfigId(), 
-            scimConfiguration.getAcceptHeader(), orgInUrl);
-=======
         List<GrouperScim2User> grouperScim2Users = GrouperScim2ApiCommands.retrieveScimUsers(scimSettings, scimConfiguration.getBearerTokenExternalSystemConfigId());
->>>>>>> ed02c78 make scim changes backwards compatible
 
         List<ProvisioningEntity> targetEntities = new ArrayList<>();
         
@@ -412,8 +394,7 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
       ProvisioningGroup grouperTargetGroup) {
     
     GrouperScim2Group grouperScim2Group = null;
-
-
+    
     String scimNamePatchStrategy = scimConfiguration.getScimNamePatchStrategy();
     
     ScimSettings scimSettings = new ScimSettings();
@@ -426,17 +407,15 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
     if (!StringUtils.isBlank(grouperTargetGroup.getId())) {
       grouperScim2Group = GrouperScim2ApiCommands.retrieveScimGroup(
           scimConfiguration.getBearerTokenExternalSystemConfigId(),
-          scimConfiguration.getAcceptHeader(),
           "id",
-          grouperTargetGroup.getId(), groupIdToMembershipEntityIds);
+          grouperTargetGroup.getId(), groupIdToMembershipEntityIds, scimSettings);
     }
 
     String displayName = grouperTargetGroup.getDisplayName();
     if (grouperScim2Group == null && !StringUtils.isBlank(displayName)) {
       grouperScim2Group = GrouperScim2ApiCommands.retrieveScimGroup(
           scimConfiguration.getBearerTokenExternalSystemConfigId(), 
-          scimConfiguration.getAcceptHeader(),
-          "displayName", displayName, groupIdToMembershipEntityIds);
+          "displayName", displayName, groupIdToMembershipEntityIds, scimSettings);
 
     }
     return grouperScim2Group;
@@ -463,7 +442,6 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
       
       grouperScim2Group = GrouperScim2Group.fromProvisioningGroup(targetGroup, null);
       
-
       String scimNamePatchStrategy = scimConfiguration.getScimNamePatchStrategy();
       
       ScimSettings scimSettings = new ScimSettings();
@@ -474,8 +452,7 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
       scimSettings.setScimContentType(scimConfiguration.getScimContentType());
       
       GrouperScim2ApiCommands.createScimGroup(scimConfiguration.getBearerTokenExternalSystemConfigId(), 
-          scimConfiguration.getAcceptHeader(),
-          grouperScim2Group, fieldNamesToInsert);
+          grouperScim2Group, fieldNamesToInsert, scimSettings);
       
       targetGroup.setProvisioned(true);
 
@@ -564,7 +541,6 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
           
           RuntimeException runtimeException = null;
           try {
-
             
             String scimNamePatchStrategy = scimConfiguration.getScimNamePatchStrategy();
             
@@ -576,8 +552,7 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
             scimSettings.setScimContentType(scimConfiguration.getScimContentType());
             
             GrouperScim2ApiCommands.createScimMemberships(scimConfiguration.getBearerTokenExternalSystemConfigId(),
-                scimConfiguration.getAcceptHeader(),
-                groupId, new HashSet<String>(userIds));
+                groupId, new HashSet<String>(userIds), scimSettings);
           } catch (RuntimeException e) {
             runtimeException = e;
           }
@@ -627,7 +602,6 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
       }
 
       try {
-
         String scimNamePatchStrategy = scimConfiguration.getScimNamePatchStrategy();
         
         ScimSettings scimSettings = new ScimSettings();
@@ -638,8 +612,7 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
         scimSettings.setScimContentType(scimConfiguration.getScimContentType());
         
         GrouperScim2ApiCommands.replaceScimMemberships(scimConfiguration.getBearerTokenExternalSystemConfigId(), 
-            scimConfiguration.getAcceptHeader(),
-            targetGroup.getId(), new HashSet<String>(userIds));
+            targetGroup.getId(), new HashSet<String>(userIds), scimSettings);
       } catch (RuntimeException e) {
         runtimeException = e;
       }
@@ -728,7 +701,6 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
           
           RuntimeException runtimeException = null;
           try {
-
             
             String scimNamePatchStrategy = scimConfiguration.getScimNamePatchStrategy();
             
@@ -740,8 +712,7 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
             scimSettings.setScimContentType(scimConfiguration.getScimContentType());
             
             GrouperScim2ApiCommands.deleteScimMemberships(scimConfiguration.getBearerTokenExternalSystemConfigId(),
-                scimConfiguration.getAcceptHeader(),
-                groupId, new HashSet<String>(userIds));
+                groupId, new HashSet<String>(userIds), scimSettings);
           } catch (RuntimeException e) {
             runtimeException = e;
           }
@@ -774,7 +745,6 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
 
       GrouperScim2Group grouperScim2Group = GrouperScim2Group.fromProvisioningGroup(targetGroup, null);
 
-
       String scimNamePatchStrategy = scimConfiguration.getScimNamePatchStrategy();
       
       ScimSettings scimSettings = new ScimSettings();
@@ -785,8 +755,7 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
       scimSettings.setScimContentType(scimConfiguration.getScimContentType());
       
       GrouperScim2ApiCommands.deleteScimGroup(scimConfiguration.getBearerTokenExternalSystemConfigId(), 
-          scimConfiguration.getAcceptHeader(),
-          grouperScim2Group.getId());
+          grouperScim2Group.getId(), scimSettings);
       
       targetGroup.setProvisioned(true);
 
@@ -965,10 +934,7 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
           Map<String, ProvisioningObjectChangeAction> attributeToChange = new HashMap<>();
           grouperScim2User.setActive(true);
           attributeToChange.put("active", ProvisioningObjectChangeAction.update);
-          GrouperScim2ApiCommands.patchScimUser(scimConfiguration.getBearerTokenExternalSystemConfigId(), 
-              scimConfiguration.getAcceptHeader(), grouperScim2User, attributeToChange, orgNameThreadLocal.get());
-
-
+          
           String scimNamePatchStrategy = scimConfiguration.getScimNamePatchStrategy();
           
           ScimSettings scimSettings = new ScimSettings();
@@ -988,7 +954,6 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
          
         grouperScim2User = GrouperScim2User.fromProvisioningEntity(targetEntity, null);
         
-
         String scimNamePatchStrategy = scimConfiguration.getScimNamePatchStrategy();
         
         ScimSettings scimSettings = new ScimSettings();
@@ -999,8 +964,7 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
         scimSettings.setScimContentType(scimConfiguration.getScimContentType());
         
         GrouperScim2ApiCommands.createScimUser(scimConfiguration.getBearerTokenExternalSystemConfigId(),
-            scimConfiguration.getAcceptHeader(),
-            grouperScim2User, fieldNamesToInsert, orgNameThreadLocal.get());
+            grouperScim2User, fieldNamesToInsert, scimSettings);
       }
 
       targetEntity.setProvisioned(true);
@@ -1038,10 +1002,7 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
         Map<String, ProvisioningObjectChangeAction> attributeToChange = new HashMap<>();
         grouperScim2User.setActive(false);
         attributeToChange.put("active", ProvisioningObjectChangeAction.update);
-        GrouperScim2ApiCommands.patchScimUser(scimConfiguration.getBearerTokenExternalSystemConfigId(), 
-            scimConfiguration.getAcceptHeader(), grouperScim2User, attributeToChange, orgNameThreadLocal.get());
         
-
         String scimNamePatchStrategy = scimConfiguration.getScimNamePatchStrategy();
         
         ScimSettings scimSettings = new ScimSettings();
@@ -1054,7 +1015,6 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
         GrouperScim2ApiCommands.patchScimUser(scimConfiguration.getBearerTokenExternalSystemConfigId(), grouperScim2User, attributeToChange, scimSettings);
         
       } else {
-
         
         String scimNamePatchStrategy = scimConfiguration.getScimNamePatchStrategy();
         
@@ -1066,8 +1026,7 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
         scimSettings.setScimContentType(scimConfiguration.getScimContentType());
         
         GrouperScim2ApiCommands.deleteScimUser(scimConfiguration.getBearerTokenExternalSystemConfigId(), 
-            scimConfiguration.getAcceptHeader(),
-            grouperScim2User.getId(), orgNameThreadLocal.get());
+            grouperScim2User.getId(), scimSettings);
       }
 
   
@@ -1109,8 +1068,7 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
       }
   
       GrouperScim2User grouperScim2User = GrouperScim2User.fromProvisioningEntity(targetEntity, null);
-  
-
+      
       String scimNamePatchStrategy = scimConfiguration.getScimNamePatchStrategy();
       
       ScimSettings scimSettings = new ScimSettings();
@@ -1121,8 +1079,7 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
       scimSettings.setScimContentType(scimConfiguration.getScimContentType());
   
       GrouperScim2ApiCommands.patchScimUser(scimConfiguration.getBearerTokenExternalSystemConfigId(), 
-          scimConfiguration.getAcceptHeader(),
-          grouperScim2User, fieldNamesToProvisioningObjectChangeAction, orgNameThreadLocal.get());
+          grouperScim2User, fieldNamesToProvisioningObjectChangeAction, scimSettings);
   
       targetEntity.setProvisioned(true);
   
@@ -1162,7 +1119,6 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
   
       GrouperScim2Group grouperScim2Group = GrouperScim2Group.fromProvisioningGroup(targetGroup, null);
   
-
       String scimNamePatchStrategy = scimConfiguration.getScimNamePatchStrategy();
       
       ScimSettings scimSettings = new ScimSettings();
@@ -1173,8 +1129,7 @@ public class GrouperScim2TargetDao extends GrouperProvisionerTargetDaoBase {
       scimSettings.setScimContentType(scimConfiguration.getScimContentType());
       
       GrouperScim2ApiCommands.patchScimGroup(scimConfiguration.getBearerTokenExternalSystemConfigId(), 
-          scimConfiguration.getAcceptHeader(),
-          grouperScim2Group, fieldNamesToProvisioningObjectChangeAction);
+          grouperScim2Group, fieldNamesToProvisioningObjectChangeAction, scimSettings);
   
       targetGroup.setProvisioned(true);
   

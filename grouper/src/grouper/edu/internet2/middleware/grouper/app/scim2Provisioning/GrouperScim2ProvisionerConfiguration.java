@@ -17,9 +17,7 @@ public class GrouperScim2ProvisionerConfiguration extends GrouperProvisioningCon
   
   private String acceptHeader;
   
-  private String scimEmailPatchStrategy;
-  
-  private String scimContentType;
+  private String scimNamePatchStrategy;
   
   private String scimEmailPatchStrategy;
   
@@ -81,7 +79,14 @@ public class GrouperScim2ProvisionerConfiguration extends GrouperProvisioningCon
   }
 
 
+  public String getScimNamePatchStrategy() {
+    return scimNamePatchStrategy;
+  }
 
+
+  public void setScimNamePatchStrategy(String scimNamePatchStrategy) {
+    this.scimNamePatchStrategy = scimNamePatchStrategy;
+  }
   
   public boolean isDisableEntitiesInsteadOfDelete() {
     return disableEntitiesInsteadOfDelete;

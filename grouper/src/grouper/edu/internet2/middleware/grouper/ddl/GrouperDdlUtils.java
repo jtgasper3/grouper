@@ -2042,6 +2042,48 @@ public class GrouperDdlUtils {
   }
   
   /**
+   * See if table has a primary key
+   * @param tableName
+   * @return true or false
+   */
+  public static boolean assertPrimaryKeyExists(String tableName) {
+    Platform platform = GrouperDdlUtils.retrievePlatform(false);
+    
+    int javaVersion = GrouperDdlUtils.retrieveDdlJavaVersion("Grouper"); 
+    
+    DdlVersionable ddlVersionableJava = GrouperDdlUtils.retieveVersion("Grouper", javaVersion);
+  
+    DbMetadataBean dbMetadataBean = GrouperDdlUtils.findDbMetadataBean(ddlVersionableJava);
+  
+    //to be safe lets only deal with tables related to this object
+    platform.getModelReader().setDefaultTablePattern(dbMetadataBean.getDefaultTablePattern());
+    //platform.getModelReader().setDefaultTableTypes(new String[]{"TABLES"});
+    platform.getModelReader().setDefaultSchemaPattern(dbMetadataBean.getSchema());
+  
+    //convenience to get the url, user, etc of the grouper db, helps get db connection
+    GrouperLoaderDb grouperDb = GrouperLoaderConfig.retrieveDbProfile("grouper");
+    
+    Connection connection = null;
+    try {
+      connection = grouperDb.connection();
+  
+      Database database = platform.readModelFromDatabase(connection, GrouperDdlUtils.PLATFORM_NAME, null,
+        null, null);
+    
+      Table table = GrouperDdlUtils.ddlutilsFindTable(database, tableName, false);
+      
+      if (table == null) {
+        return false;
+      }
+      
+      return table.hasPrimaryKey();
+    } finally {
+      GrouperUtil.closeQuietly(connection);
+    }
+  
+  }
+  
+  /**
    * add an index on a table.  drop a misnamed or a misuniqued index which is existing
    * @param database
    * @param ddlVersionBean can be null unless custom script
@@ -2900,4 +2942,158 @@ public class GrouperDdlUtils {
     }
   }
 
+  /**
+   * Checks if the columnName in the given tableName is allowed to be null.
+   * @param tableName
+   * @param columnName
+   * @param queryColumnName
+   * @param queryColumnValue
+   * @return
+   */
+  public static boolean isColumnNullable(String tableName, String columnName, String queryColumnName, String queryColumnValue) {
+    GrouperLoaderDb grouperDb = GrouperLoaderConfig.retrieveDbProfile("grouper");
+    Connection connection = null;
+    PreparedStatement preparedStatement = null;
+    ResultSet resultSet = null;
+    try {
+      connection = grouperDb.connection();
+      preparedStatement = connection.prepareStatement("select " + columnName + " from " + tableName + " where " + queryColumnName + "= ?");
+      preparedStatement.setString(1, queryColumnValue);
+      resultSet = preparedStatement.executeQuery();
+      ResultSetMetaData metadata = resultSet.getMetaData();
+      if (metadata.isNullable(1) == ResultSetMetaData.columnNoNulls) {
+        return false;
+      }
+      
+      return true;
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    } finally {
+      GrouperUtil.closeQuietly(resultSet);
+      GrouperUtil.closeQuietly(preparedStatement);
+      GrouperUtil.closeQuietly(connection);
+    }
+  }
+  
+  /**
+   * Checks if the columnName in the given tableName is allowed to be null.
+   * @param tableName
+   * @param columnName
+   * @param queryColumnName
+   * @param queryColumnValue
+   * @return
+   */
+  public static boolean isColumnNullable(String tableName, String columnName, String queryColumnName, long queryColumnValue) {
+    GrouperLoaderDb grouperDb = GrouperLoaderConfig.retrieveDbProfile("grouper");
+    Connection connection = null;
+    PreparedStatement preparedStatement = null;
+    ResultSet resultSet = null;
+    try {
+      connection = grouperDb.connection();
+      preparedStatement = connection.prepareStatement("select " + columnName + " from " + tableName + " where " + queryColumnName + "= ?");
+      preparedStatement.setLong(1, queryColumnValue);
+      resultSet = preparedStatement.executeQuery();
+      ResultSetMetaData metadata = resultSet.getMetaData();
+      if (metadata.isNullable(1) == ResultSetMetaData.columnNoNulls) {
+        return false;
+      }
+      
+      return true;
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    } finally {
+      GrouperUtil.closeQuietly(resultSet);
+      GrouperUtil.closeQuietly(preparedStatement);
+      GrouperUtil.closeQuietly(connection);
+    }
+  }
+  
+  /**
+   * Returns the java.sql.Types value for the column
+   * -5 is bigint.  93 is timestamp.  2 is numeric (number in Oracle).
+   * @param tableName
+   * @param columnName
+   * @return
+   */
+  public static int getColumnType(String tableName, String columnName) {
+    GrouperLoaderDb grouperDb = GrouperLoaderConfig.retrieveDbProfile("grouper");
+    Connection connection = null;
+    PreparedStatement preparedStatement = null;
+    ResultSet resultSet = null;
+    try {
+      connection = grouperDb.connection();
+      preparedStatement = connection.prepareStatement("select " + columnName + " from " + tableName + " where 1 = 2");
+      resultSet = preparedStatement.executeQuery();
+      ResultSetMetaData metadata = resultSet.getMetaData();
+      return metadata.getColumnType(1);
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    } finally {
+      GrouperUtil.closeQuietly(resultSet);
+      GrouperUtil.closeQuietly(preparedStatement);
+      GrouperUtil.closeQuietly(connection);
+    }
+  }
+  
+  public static boolean doesConstraintExistOracle(String constraintName) {
+    if (!GrouperDdlUtils.isOracle()) {
+      throw new RuntimeException("Database not oracle!");
+    }
+    
+    GrouperLoaderDb grouperDb = GrouperLoaderConfig.retrieveDbProfile("grouper");
+    Connection connection = null;
+    PreparedStatement preparedStatement = null;
+    ResultSet resultSet = null;
+    try {
+      connection = grouperDb.connection();
+      preparedStatement = connection.prepareStatement("select count(*) as count from user_constraints where upper(constraint_name) = ?");
+      preparedStatement.setString(1, constraintName.toUpperCase());
+      resultSet = preparedStatement.executeQuery();
+      resultSet.next();
+      int count = resultSet.getInt(1);
+      
+      if (count == 0) {
+        return false;
+      }
+      
+      return true;
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    } finally {
+      GrouperUtil.closeQuietly(resultSet);
+      GrouperUtil.closeQuietly(preparedStatement);
+      GrouperUtil.closeQuietly(connection);
+    }
+  }
+  
+  public static boolean doesFunctionExistOracle(String functionName) {
+    if (!GrouperDdlUtils.isOracle()) {
+      throw new RuntimeException("Database not oracle!");
+    }
+    
+    GrouperLoaderDb grouperDb = GrouperLoaderConfig.retrieveDbProfile("grouper");
+    Connection connection = null;
+    PreparedStatement preparedStatement = null;
+    ResultSet resultSet = null;
+    try {
+      connection = grouperDb.connection();
+      preparedStatement = connection.prepareStatement("select count(*) as count from user_procedures where upper(object_name) = ?");
+      preparedStatement.setString(1, functionName.toUpperCase());
+      resultSet = preparedStatement.executeQuery();
+      resultSet.next();
+      int count = resultSet.getInt(1);
+      
+      if (count == 0) {
+        return false;
+      }
+      
+      return true;
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    } finally {
+      GrouperUtil.closeQuietly(resultSet);
+      GrouperUtil.closeQuietly(preparedStatement);
+      GrouperUtil.closeQuietly(connection);
+    }
+  }
 }

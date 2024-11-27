@@ -8,30 +8,32 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
-import edu.internet2.middleware.grouper.ext.org.apache.ddlutils.Platform;
-import edu.internet2.middleware.grouper.ext.org.apache.ddlutils.model.Database;
-import edu.internet2.middleware.grouper.ext.org.apache.ddlutils.platform.SqlBuilder;
 
 import edu.internet2.middleware.grouper.FieldFinder;
+import edu.internet2.middleware.grouper.Group;
+import edu.internet2.middleware.grouper.GroupFinder;
 import edu.internet2.middleware.grouper.GroupTypeFinder;
+import edu.internet2.middleware.grouper.GrouperSession;
 import edu.internet2.middleware.grouper.MemberFinder;
 import edu.internet2.middleware.grouper.app.gsh.GrouperShell;
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
 import edu.internet2.middleware.grouper.app.loader.db.GrouperLoaderDb;
 import edu.internet2.middleware.grouper.app.loader.db.Hib3GrouperDdlWorker;
+import edu.internet2.middleware.grouper.app.upgradeTasks.UpgradeTasksJob;
+import edu.internet2.middleware.grouper.attr.AttributeDef;
 import edu.internet2.middleware.grouper.audit.AuditTypeFinder;
 import edu.internet2.middleware.grouper.cache.EhcacheController;
-import edu.internet2.middleware.grouper.cache.GrouperCache;
 import edu.internet2.middleware.grouper.cache.GrouperCacheDatabase;
 import edu.internet2.middleware.grouper.cfg.GrouperConfig;
 import edu.internet2.middleware.grouper.cfg.GrouperHibernateConfig;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogTypeFinder;
 import edu.internet2.middleware.grouper.ddl.GrouperDdlUtils.DbMetadataBean;
+import edu.internet2.middleware.grouper.ext.org.apache.ddlutils.Platform;
+import edu.internet2.middleware.grouper.ext.org.apache.ddlutils.model.Database;
+import edu.internet2.middleware.grouper.ext.org.apache.ddlutils.platform.SqlBuilder;
 import edu.internet2.middleware.grouper.hibernate.HibernateSession;
 import edu.internet2.middleware.grouper.internal.dao.hib3.Hib3DAO;
 import edu.internet2.middleware.grouper.internal.util.GrouperUuid;
@@ -604,11 +606,15 @@ public class GrouperDdlEngine {
         //ok, we stored, are we in there?
         GrouperUtil.sleep(3000);
         
-        List<Hib3GrouperDdlWorker> ddlWorkers = HibernateSession.bySqlStatic().listSelect(Hib3GrouperDdlWorker.class, "select * from grouper_ddl_worker", null, null);
-        grouperDdlWorker = GrouperUtil.length(ddlWorkers) > 0 ? ddlWorkers.get(0) : null;
-        
-        if (grouperDdlWorker != null && !StringUtils.equals(thisDdlDatabaseLockingUuid, grouperDdlWorker.getWorkerUuid())) {
-          waitForOtherProcessesToDoDdl = true;
+        List<Hib3GrouperDdlWorker> ddlWorkerRows = HibernateSession.bySqlStatic().listSelect(Hib3GrouperDdlWorker.class, "select * from grouper_ddl_worker", null, null);
+        if (GrouperUtil.length(ddlWorkerRows) > 0) {
+          grouperDdlWorker = ddlWorkerRows.get(0);
+          
+          if (!StringUtils.equals(thisDdlDatabaseLockingUuid, grouperDdlWorker.getWorkerUuid())) {
+            waitForOtherProcessesToDoDdl = true;
+          }
+        } else {
+          return false;
         }
 
         // lets do it!
@@ -888,11 +894,7 @@ public class GrouperDdlEngine {
       
       return;
     }
-<<<<<<< GROUPER_4_BRANCH
-    
-=======
-        
->>>>>>> db7b372 GRP-5822: DDL updates for timestamp functions and sql cache dependency tables (commit 2)
+
     AttributeDef upgradeTasksAttributeDef = UpgradeTasksJob.grouperUpgradeTasksAttributeDef();
     if (!upgradeTasksAttributeDef.isMultiValued()) {
       int currentDbVersion = UpgradeTasksJob.getDBVersion();

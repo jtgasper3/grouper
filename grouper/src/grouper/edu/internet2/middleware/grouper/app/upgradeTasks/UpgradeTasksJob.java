@@ -21,14 +21,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.logging.Log;
 import org.quartz.DisallowConcurrentExecution;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
 import edu.internet2.middleware.grouper.GrouperSession;
-import edu.internet2.middleware.grouper.app.loader.GrouperDaemonUtils;
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderStatus;
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderType;
 import edu.internet2.middleware.grouper.app.loader.OtherJobBase;
@@ -153,8 +151,6 @@ public class UpgradeTasksJob extends OtherJobBase {
       otherJobInput.getHib3GrouperLoaderLog().setTotalCount(highestEnumVersion);
       for (Integer version = 1; version <= highestEnumVersion; version++) {
     
-        GrouperDaemonUtils.stopProcessingIfJobPaused();
-        
         if (sortedOldDbVersions.contains(version)) {
           // version is already there; skip it
         } else {
@@ -227,8 +223,6 @@ public class UpgradeTasksJob extends OtherJobBase {
     }
     
     int highestEnumVersion = UpgradeTasks.currentVersion();
-    
-    GrouperDaemonUtils.stopProcessingIfJobPaused();
     
     for (Integer version = 1; version <= highestEnumVersion; version++) {
       
