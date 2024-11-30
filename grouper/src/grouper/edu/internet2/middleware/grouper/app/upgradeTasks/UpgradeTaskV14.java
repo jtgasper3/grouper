@@ -89,7 +89,7 @@ public class UpgradeTaskV14 implements UpgradeTasksInterface {
                 domain VARCHAR(100) NULL,
                 country VARCHAR(2) NULL,
                 PRIMARY KEY (config_id, user_id)
-            );                    
+            )                    
                   """).executeSql();
               if (otherJobInput != null) {
                 otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
@@ -109,7 +109,7 @@ public class UpgradeTaskV14 implements UpgradeTasksInterface {
                 domain VARCHAR2(100) NULL,
                 country VARCHAR2(2) NULL,
                 PRIMARY KEY (config_id, user_id)
-            );
+            )
                   """).executeSql();
               if (otherJobInput != null) {
                 otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
@@ -130,7 +130,7 @@ public class UpgradeTaskV14 implements UpgradeTasksInterface {
                   domain VARCHAR(100) NULL,
                   country VARCHAR(2) NULL,
                   PRIMARY KEY (config_id, user_id)
-              );
+              )
                   """).executeSql();
               if (otherJobInput != null) {
                 otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
@@ -178,7 +178,7 @@ public class UpgradeTaskV14 implements UpgradeTasksInterface {
                 member_count BIGINT NULL,
                 license_quota BIGINT NULL,
                 PRIMARY KEY (config_id, group_id)
-            );
+            )
                   """).executeSql();
               if (otherJobInput != null) {
                 otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
@@ -195,7 +195,7 @@ public class UpgradeTaskV14 implements UpgradeTasksInterface {
               member_count NUMBER(38) NULL,
               license_quota NUMBER(38) NULL,
               PRIMARY KEY (config_id, group_id)
-          );
+          )
                   """).executeSql();
               if (otherJobInput != null) {
                 otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
@@ -213,7 +213,7 @@ public class UpgradeTaskV14 implements UpgradeTasksInterface {
                   member_count BIGINT NULL,
                   license_quota BIGINT NULL,
                   PRIMARY KEY (config_id, group_id)
-              );
+              )
                   """).executeSql();
               if (otherJobInput != null) {
                 otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
@@ -318,7 +318,7 @@ public class UpgradeTaskV14 implements UpgradeTasksInterface {
                 group_id BIGINT NOT NULL,
                 user_id VARCHAR(100) NOT NULL,
                 PRIMARY KEY (config_id, group_id, user_id)
-            );
+            )
 
                   """).executeSql();
               if (otherJobInput != null) {
@@ -332,7 +332,7 @@ public class UpgradeTaskV14 implements UpgradeTasksInterface {
                 group_id NUMBER(38) NOT NULL,
                 user_id VARCHAR2(100) NOT NULL,
                 PRIMARY KEY (config_id, group_id, user_id)
-            );
+            )
                   """).executeSql();
               if (otherJobInput != null) {
                 otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
@@ -346,7 +346,7 @@ public class UpgradeTaskV14 implements UpgradeTasksInterface {
                     group_id BIGINT NOT NULL,
                     user_id VARCHAR(100) NOT NULL,
                     PRIMARY KEY (config_id, group_id, user_id)
-                );
+                )
                   """).executeSql();
               if (otherJobInput != null) {
                 otherJobInput.getHib3GrouperLoaderLog().addInsertCount(1);
@@ -420,7 +420,7 @@ public class UpgradeTaskV14 implements UpgradeTasksInterface {
           }
 
         } catch (Throwable t) {
-          String message = "Could not perform upgrade task V14 adding tables/foreign keys/indexes for GRP-5625 load azure from provisioner to table!  "
+          String message = "Could not perform upgrade task V14 adding tables/foreign keys/indexes for GRP-5784 adobe provisioner!  "
               + "Skipping this upgrade task, install the tables/foreign keys/indexes manually";
           LOG.error(message, t);
           if (otherJobInput != null) {
