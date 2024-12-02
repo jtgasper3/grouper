@@ -502,16 +502,18 @@ public class Hib3GroupDAO extends Hib3DAO implements GroupDAO {
             if (Group._internal_fieldAttribute(attr)) {
               hql.append(" lower(theGroup." + attr + "Db) like :value ");
             } else {
-              String legacyAttributeStemName = GrouperConfig.retrieveConfig().propertyValueStringRequired("legacyAttribute.baseStem");
-              String legacyAttributePrefix = GrouperConfig.retrieveConfig().propertyValueStringRequired("legacyAttribute.attribute.prefix");
-
               hql.append(" assign.ownerGroupId = theGroup.uuid and assign.id = assign2.ownerAttributeAssignId and assign2.id = value.attributeAssignId and assign2.attributeDefNameId = name2.id and assign.attributeDefNameId = name.id and " +
                 "name2.nameDb = :attributeName and lower(value.valueString) like :value ");
-              
-              String attributePrefix = legacyAttributeStemName + ":" + legacyAttributePrefix;
-              if (attr.startsWith(attributePrefix)) {
+
+              if (attr.contains(":")) {
+                /* a full attribute value; use as is */
                 byHql.setString("attributeName",  attr);
               } else {
+                /* assume a legacy attribute and add prefix, to preserve some level of existing behavior */
+                String legacyAttributeStemName = GrouperConfig.retrieveConfig().propertyValueStringRequired("legacyAttribute.baseStem");
+                String legacyAttributePrefix = GrouperConfig.retrieveConfig().propertyValueStringRequired("legacyAttribute.attribute.prefix");
+
+                String attributePrefix = legacyAttributeStemName + ":" + legacyAttributePrefix;
                 byHql.setString("attributeName",  attributePrefix + attr);
               }
             }
@@ -1074,16 +1076,18 @@ public class Hib3GroupDAO extends Hib3DAO implements GroupDAO {
             if (Group._internal_fieldAttribute(attr)) {
               hql.append(" theGroup." + attr + "Db = :value ");
             } else {
-              String legacyAttributeStemName = GrouperConfig.retrieveConfig().propertyValueStringRequired("legacyAttribute.baseStem");
-              String legacyAttributePrefix = GrouperConfig.retrieveConfig().propertyValueStringRequired("legacyAttribute.attribute.prefix");
-
               hql.append(" assign.ownerGroupId = theGroup.uuid and assign.id = assign2.ownerAttributeAssignId and assign2.id = value.attributeAssignId and assign2.attributeDefNameId = name2.id and assign.attributeDefNameId = name.id and " +
                 "name2.nameDb = :attributeName and value.valueString like :value ");
-              
-              String attributePrefix = legacyAttributeStemName + ":" + legacyAttributePrefix;
-              if (attr.startsWith(attributePrefix)) {
+
+              if (attr.contains(":")) {
+                /* a full attribute value; use as is */
                 byHql.setString("attributeName", attr);
               } else {
+                /* assume a legacy attribute and add prefix, to preserve some level of existing behavior */
+                String legacyAttributeStemName = GrouperConfig.retrieveConfig().propertyValueStringRequired("legacyAttribute.baseStem");
+                String legacyAttributePrefix = GrouperConfig.retrieveConfig().propertyValueStringRequired("legacyAttribute.attribute.prefix");
+
+                String attributePrefix = legacyAttributeStemName + ":" + legacyAttributePrefix;
                 byHql.setString("attributeName", attributePrefix + attr);
               }
             }
@@ -2022,16 +2026,19 @@ public class Hib3GroupDAO extends Hib3DAO implements GroupDAO {
             if (Group._internal_fieldAttribute(attr)) {
               hql.append(" theGroup." + attr + "Db = :value ");
             } else {
-              String legacyAttributeStemName = GrouperConfig.retrieveConfig().propertyValueStringRequired("legacyAttribute.baseStem");
-              String legacyAttributePrefix = GrouperConfig.retrieveConfig().propertyValueStringRequired("legacyAttribute.attribute.prefix");
 
               hql.append(" assign.ownerGroupId = theGroup.uuid and assign.id = assign2.ownerAttributeAssignId and assign2.id = value.attributeAssignId and assign2.attributeDefNameId = name2.id and assign.attributeDefNameId = name.id and " +
                 "name2.nameDb = :attributeName and value.valueString = :value ");
-              
-              String attributePrefix = legacyAttributeStemName + ":" + legacyAttributePrefix;
-              if (attr.startsWith(attributePrefix)) {
+
+              if (attr.contains(":")) {
+                /* a full attribute value; use as is */
                 byHql.setString("attributeName", attr);
               } else {
+                /* assume a legacy attribute and add prefix, to preserve some level of existing behavior */
+                String legacyAttributeStemName = GrouperConfig.retrieveConfig().propertyValueStringRequired("legacyAttribute.baseStem");
+                String legacyAttributePrefix = GrouperConfig.retrieveConfig().propertyValueStringRequired("legacyAttribute.attribute.prefix");
+
+                String attributePrefix = legacyAttributeStemName + ":" + legacyAttributePrefix;
                 byHql.setString("attributeName", attributePrefix + attr);
               }
             }
