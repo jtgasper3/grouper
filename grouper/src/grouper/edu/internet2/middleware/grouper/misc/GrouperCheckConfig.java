@@ -2517,33 +2517,6 @@ public class GrouperCheckConfig {
 
           }
 
-
-          {
-            String upgradeTasksRootStemName = UpgradeTasksJob.grouperUpgradeTasksStemName();
-            
-            Stem upgradeTasksRootStem = stemNameToStem.get(upgradeTasksRootStemName);
-
-            // check attribute def
-            String upgradeTasksDefName = upgradeTasksRootStemName + ":" + UpgradeTasksJob.UPGRADE_TASKS_DEF;
-            AttributeDef upgradeTasksDef = nameOfAttributeDefToAttributeDef.get(upgradeTasksDefName);
-                            
-            String upgradeTasksVersionName = upgradeTasksRootStemName + ":" + UpgradeTasksJob.UPGRADE_TASKS_VERSION_ATTR;
-            
-            AttributeDefName upgradeTasksVersion = GrouperDAOFactory.getFactory().getAttributeDefName().findByNameSecure(
-                upgradeTasksVersionName, false, new QueryOptions().secondLevelCache(false));
-            
-            if (upgradeTasksVersion == null) {
-              upgradeTasksVersion = upgradeTasksRootStem.addChildAttributeDefName(upgradeTasksDef, UpgradeTasksJob.UPGRADE_TASKS_VERSION_ATTR, UpgradeTasksJob.UPGRADE_TASKS_VERSION_ATTR);
-            }
-            
-            String groupName = upgradeTasksRootStemName + ":" + UpgradeTasksJob.UPGRADE_TASKS_METADATA_GROUP;
-            Group group = groupNameToGroup.get(groupName);
-
-            if (group.getAttributeValueDelegate().retrieveValueString(upgradeTasksVersionName) == null) {
-              group.getAttributeValueDelegate().assignValue(upgradeTasksVersionName, "0");
-            }
-
-          }
                 
           {
             String instrumentationDataRootStemName = InstrumentationDataUtils.grouperInstrumentationDataStemName();
@@ -4294,6 +4267,20 @@ public class GrouperCheckConfig {
             
           }
 
+          {
+            String upgradeTasksRootStemName = UpgradeTasksJob.grouperUpgradeTasksStemName();
+            Stem upgradeTasksRootStem = stemNameToStem.get(upgradeTasksRootStemName);
+
+            //see if attributeDef is there
+            String upgradeTasksDefName = upgradeTasksRootStemName + ":" + UpgradeTasksJob.UPGRADE_TASKS_DEF;
+            AttributeDef upgradeTasksDef = nameOfAttributeDefToAttributeDef.get(upgradeTasksDefName); 
+                
+            {
+              checkAttribute(upgradeTasksRootStem, upgradeTasksDef, UpgradeTasksJob.UPGRADE_TASKS_VERSION_ATTR, UpgradeTasksJob.UPGRADE_TASKS_VERSION_ATTR,
+                  "Upgrade task version", attributeDefNameSaves);
+            }
+
+          }
           {
             String limitsRootStemName = PermissionLimitUtils.attributeLimitStemName();
             Stem limitsStem = StemFinder.findByName(grouperSession, limitsRootStemName, true, new QueryOptions().secondLevelCache(false));
