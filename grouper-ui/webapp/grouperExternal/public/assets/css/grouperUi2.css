@@ -243,3 +243,28 @@ a:not(.btn):not([role]) {
   text-decoration: none !important;
 }
 */
+
+
+span > .config-first-radio-button-label {
+  display: inline-block;
+  width: 120px;
+}
+
+span > .config-radio-button-label {
+  margin-right: 10px;
+}
+
+span > .config-radio-button {
+  margin-right:3px;
+  margin-top:0px;
+}
+
+td > .config-el-checkbox {
+  vertical-align: top; 
+  min-height: 10px;
+  margin-right: 2px;
+}
+
+td > .config-el-label {
+  border-bottom: 1px dotted #000;
+}
