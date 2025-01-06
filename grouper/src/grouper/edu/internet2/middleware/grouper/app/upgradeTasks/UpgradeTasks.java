@@ -22,120 +22,102 @@ import org.apache.commons.logging.Log;
 
 import edu.internet2.middleware.grouper.app.loader.OtherJobBase.OtherJobInput;
 import edu.internet2.middleware.grouper.ddl.GrouperDdlUtils;
+import edu.internet2.middleware.grouper.misc.GrouperVersion;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
 
 /**
  * @author shilen
  */
-public enum UpgradeTasks implements UpgradeTasksInterface {
+public enum UpgradeTasks {
   
 
   /**
    * add groupAttrRead/groupAttrUpdate group sets for entities
    */
   V1 {
-
+    
     @Override
-    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
-      new UpgradeTaskV1().updateVersionFromPrevious(otherJobInput);
-      //new SyncPITTables().processMissingActivePITGroupSets();
+    public UpgradeTasksInterface upgradeTask() {
+      return new UpgradeTaskV1();
     }
+    
   },
   
   /**
    * move subject resolution status attributes to member table
    */
   V2 {
-
+    
     @Override
-    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
-      new UpgradeTaskV2().updateVersionFromPrevious(otherJobInput);
+    public UpgradeTasksInterface upgradeTask() {
+      return new UpgradeTaskV2();
     }
+    
   },
   V3{
-
+    
     @Override
-    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
-      new UpgradeTaskV3().updateVersionFromPrevious(otherJobInput);
+    public UpgradeTasksInterface upgradeTask() {
+      return new UpgradeTaskV3();
     }
     
   },
   V4{
 
     @Override
-    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
-      new UpgradeTaskV4().updateVersionFromPrevious(otherJobInput);
+    public UpgradeTasksInterface upgradeTask() {
+      return new UpgradeTaskV4();
     }
     
   },
   V5 {
 
     @Override
-    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
-      new UpgradeTaskV5().updateVersionFromPrevious(otherJobInput);
+    public UpgradeTasksInterface upgradeTask() {
+      return new UpgradeTaskV5();
     }
     
   },
   V6 {
 
     @Override
-    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
-      new UpgradeTaskV6().updateVersionFromPrevious(otherJobInput);
+    public UpgradeTasksInterface upgradeTask() {
+      return new UpgradeTaskV6();
     }
     
   },
   V7 {
     
     @Override
-    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
-      new UpgradeTaskV7().updateVersionFromPrevious(otherJobInput);
+    public UpgradeTasksInterface upgradeTask() {
+      return new UpgradeTaskV7();
     }
 
   },
  V8 {
     
     @Override
-    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
-      new UpgradeTaskV8().updateVersionFromPrevious(otherJobInput);
+    public UpgradeTasksInterface upgradeTask() {
+      return new UpgradeTaskV8();
     }
 
-    @Override
-    public boolean doesUpgradeTaskHaveDdlWorkToDo() {
-      boolean columnNullable = GrouperDdlUtils.isColumnNullable("grouper_members", "id_index", "subject_id", "GrouperSystem");
-      return columnNullable;
-    }
-
-    @Override
-    public boolean upgradeTaskIsDdl() {
-      return true;
-    }
-    
   }
   ,
   V9{
     
     @Override
-    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
-      new UpgradeTaskV9().updateVersionFromPrevious(otherJobInput);
+    public UpgradeTasksInterface upgradeTask() {
+      return new UpgradeTaskV9();
     }
+
   }, 
   V14{
     
     @Override
-    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
-      new UpgradeTaskV14().updateVersionFromPrevious(otherJobInput);
+    public UpgradeTasksInterface upgradeTask() {
+      return new UpgradeTaskV14();
     }
 
-    @Override
-    public boolean doesUpgradeTaskHaveDdlWorkToDo() {
-      return new UpgradeTaskV14().doesUpgradeTaskHaveDdlWorkToDo();
-    }
-
-    @Override
-    public boolean upgradeTaskIsDdl() {
-      return true;
-    }
-    
   }, 
   
   /**
@@ -144,20 +126,10 @@ public enum UpgradeTasks implements UpgradeTasksInterface {
   V10 {
     
     @Override
-    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
-      new UpgradeTaskV10().updateVersionFromPrevious(otherJobInput);
+    public UpgradeTasksInterface upgradeTask() {
+      return new UpgradeTaskV10();
     }
 
-    @Override
-    public boolean doesUpgradeTaskHaveDdlWorkToDo() {
-      return new UpgradeTaskV10().doesUpgradeTaskHaveDdlWorkToDo();
-    }
-
-    @Override
-    public boolean upgradeTaskIsDdl() {
-      return true;
-    }
-    
   }      
   ,
   /**
@@ -166,20 +138,10 @@ public enum UpgradeTasks implements UpgradeTasksInterface {
   V11 {
     
     @Override
-    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
-      new UpgradeTaskV11().updateVersionFromPrevious(otherJobInput);
+    public UpgradeTasksInterface upgradeTask() {
+      return new UpgradeTaskV11();
     }
 
-    @Override
-    public boolean doesUpgradeTaskHaveDdlWorkToDo() {
-      return new UpgradeTaskV11().doesUpgradeTaskHaveDdlWorkToDo();
-    }
-
-    @Override
-    public boolean upgradeTaskIsDdl() {
-      return true;
-    }
-    
   }
   , 
   /**
@@ -188,20 +150,9 @@ public enum UpgradeTasks implements UpgradeTasksInterface {
   V12 {
     
     @Override
-    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
-      new UpgradeTaskV12().updateVersionFromPrevious(otherJobInput);
-    }
-
-    @Override
-    public boolean doesUpgradeTaskHaveDdlWorkToDo() {
-      return new UpgradeTaskV12().doesUpgradeTaskHaveDdlWorkToDo();
-    }
-
-    @Override
-    public boolean upgradeTaskIsDdl() {
-      return true;
-    }
-    
+    public UpgradeTasksInterface upgradeTask() {
+      return new UpgradeTaskV12();
+    }    
     
   }
   ,
@@ -211,36 +162,17 @@ public enum UpgradeTasks implements UpgradeTasksInterface {
   V13 {
     
     @Override
-    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {      
-      new UpgradeTaskV13().updateVersionFromPrevious(otherJobInput);
+    public UpgradeTasksInterface upgradeTask() {
+      return new UpgradeTaskV13();
     }
 
-    @Override
-    public boolean doesUpgradeTaskHaveDdlWorkToDo() {
-      return new UpgradeTaskV13().doesUpgradeTaskHaveDdlWorkToDo();
-    }
-
-    @Override
-    public boolean upgradeTaskIsDdl() {
-      return true;
-    }
-    
   },  
   V29{
     @Override
-    public void updateVersionFromPrevious(OtherJobInput otherJobInput) {
-      new UpgradeTaskV29().updateVersionFromPrevious(otherJobInput);
+    public UpgradeTasksInterface upgradeTask() {
+      return new UpgradeTaskV29();
     }
     
-    @Override
-    public boolean doesUpgradeTaskHaveDdlWorkToDo() {
-      return new UpgradeTaskV29().doesUpgradeTaskHaveDdlWorkToDo();
-    }
-  
-    @Override
-    public boolean upgradeTaskIsDdl() {
-      return true;
-    }
   }
   ;
   
@@ -266,46 +198,7 @@ public enum UpgradeTasks implements UpgradeTasksInterface {
     return currentVersion;
   }
   
-  public boolean doesUpgradeTaskHaveDdlWorkToDo() {
-    return false;
-  }
+  public abstract UpgradeTasksInterface upgradeTask();
   
-  public boolean upgradeTaskIsDdl() {
-    return false;
-  }
-  
-
-  public static final Set<String> v8_entityResolverSuffixesToRefactor = GrouperUtil.toSet("entityAttributesNotInSubjectSource",
-      "resolveAttributesWithSQL",
-      "useGlobalSQLResolver",
-      "globalSQLResolver",
-      "sqlConfigId",
-      "tableOrViewName",
-      "columnNames",
-      "subjectSourceIdColumn",
-      "subjectSearchMatchingColumn",
-      "sqlMappingType",
-      "sqlMappingEntityAttribute",
-      "sqlMappingExpression",
-      "lastUpdatedColumn",
-      "lastUpdatedType",
-      "selectAllSQLOnFull",
-      "resolveAttributesWithLDAP",
-      "useGlobalLDAPResolver",
-      "globalLDAPResolver",
-      "ldapConfigId",
-      "baseDN",
-      "subjectSourceId",
-      "searchScope",
-      "filterPart",
-      "attributes",
-      "multiValuedLdapAttributes",
-      "ldapMatchingSearchAttribute",
-      "ldapMappingType",
-      "ldapMappingEntityAttribute",
-      "ldapMatchingExpression",
-      "filterAllLDAPOnFull",
-      "lastUpdatedAttribute",
-      "lastUpdatedFormat" );
 
 }
