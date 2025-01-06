@@ -1853,7 +1853,7 @@ public class GrouperDdlUtilsTest extends GrouperTest {
         0 < grouperDdlEngine.getGrouperDdlCompareResult().getErrorCount()
             + grouperDdlEngine.getGrouperDdlCompareResult().getWarningCount());
 
-    UpgradeTasks.V11.updateVersionFromPrevious(null);
+    UpgradeTasks.V11.upgradeTask().updateVersionFromPrevious(null);
   
     //lets make sure everything is there on upgrade
     assertTrue(GrouperDdlUtils.assertTableThere(true, "grouper_sync_dep_group_user"));
@@ -2003,8 +2003,8 @@ public class GrouperDdlUtilsTest extends GrouperTest {
         0 < grouperDdlEngine.getGrouperDdlCompareResult().getErrorCount()
             + grouperDdlEngine.getGrouperDdlCompareResult().getWarningCount());
 
-    UpgradeTasks.V11.updateVersionFromPrevious(null);
-    UpgradeTasks.V12.updateVersionFromPrevious(null);
+    UpgradeTasks.V11.upgradeTask().updateVersionFromPrevious(null);
+    UpgradeTasks.V12.upgradeTask().updateVersionFromPrevious(null);
   
     //lets make sure everything is there on upgrade
     assertTrue(GrouperDdlUtils.assertTableThere(true, "grouper_prov_scim_user"));
@@ -2187,9 +2187,9 @@ public class GrouperDdlUtilsTest extends GrouperTest {
         0 < grouperDdlEngine.getGrouperDdlCompareResult().getErrorCount()
             + grouperDdlEngine.getGrouperDdlCompareResult().getWarningCount());
 
-    UpgradeTasks.V11.updateVersionFromPrevious(null);
-    UpgradeTasks.V12.updateVersionFromPrevious(null);
-    UpgradeTasks.V13.updateVersionFromPrevious(null);
+    UpgradeTasks.V11.upgradeTask().updateVersionFromPrevious(null);
+    UpgradeTasks.V12.upgradeTask().updateVersionFromPrevious(null);
+    UpgradeTasks.V13.upgradeTask().updateVersionFromPrevious(null);
   
     //lets make sure everything is there on upgrade
     assertTrue(GrouperDdlUtils.assertTableThere(true, "grouper_prov_azure_user"));
@@ -2250,7 +2250,7 @@ public class GrouperDdlUtilsTest extends GrouperTest {
     assertFalse(GrouperDdlUtils.assertTableThere(true, "grouper_prov_adobe_group"));
     assertFalse(GrouperDdlUtils.assertTableThere(true, "grouper_prov_adobe_membership"));
   
-    UpgradeTasks.V14.updateVersionFromPrevious(null);
+    UpgradeTasks.V14.upgradeTask().updateVersionFromPrevious(null);
   
     //lets make sure everything is there on upgrade
     assertTrue(GrouperDdlUtils.assertTableThere(true, "grouper_prov_adobe_user"));
