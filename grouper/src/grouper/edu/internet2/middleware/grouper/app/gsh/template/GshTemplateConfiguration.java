@@ -87,7 +87,7 @@ public class GshTemplateConfiguration extends GrouperConfigurationModuleBase {
     Map<String, GrouperConfigurationModuleAttribute> attributes = this.retrieveAttributes();
     
     GrouperConfigurationModuleAttribute showOnGroupsAttribute = attributes.get("showOnGroups");
-    String showOnGroupsValue = showOnGroupsAttribute.getValueOrExpressionEvaluation();
+    String showOnGroupsValue = showOnGroupsAttribute.getValueOrExpressionEvaluationValue();
     
     boolean showTemplateOnAllGroups = true;
     Set<Group> groupsWhereTemplateIsAvailable = null;
@@ -95,14 +95,14 @@ public class GshTemplateConfiguration extends GrouperConfigurationModuleBase {
     
     if (GrouperUtil.booleanValue(showOnGroupsValue, false)) {
       GrouperConfigurationModuleAttribute groupShowTypeAttribute = attributes.get("groupShowType");
-      String groupShowTypeValue = groupShowTypeAttribute.getValueOrExpressionEvaluation();
+      String groupShowTypeValue = groupShowTypeAttribute.getValueOrExpressionEvaluationValue();
       
       GshTemplateGroupShowType groupShowType = GshTemplateGroupShowType.valueOfIgnoreCase(groupShowTypeValue, true);
       
       if (groupShowType == GshTemplateGroupShowType.certainGroups) {
         showTemplateOnAllGroups = false;
         GrouperConfigurationModuleAttribute groupUuidsToShowAttribute = attributes.get("groupUuidsToShow");
-        String groupUuidsToShow = groupUuidsToShowAttribute.getValueOrExpressionEvaluation();
+        String groupUuidsToShow = groupUuidsToShowAttribute.getValueOrExpressionEvaluationValue();
         
         String[] groupUuidsOrNamesToShow = GrouperUtil.splitTrim(groupUuidsToShow, ",");
         
@@ -134,7 +134,7 @@ public class GshTemplateConfiguration extends GrouperConfigurationModuleBase {
         showTemplateOnAllGroups = false;
         
         GrouperConfigurationModuleAttribute folderUuidForGroupsInFolderAttribute = attributes.get("folderUuidForGroupsInFolder");
-        String folderUuidForGroupsInFolder = folderUuidForGroupsInFolderAttribute.getValueOrExpressionEvaluation();
+        String folderUuidForGroupsInFolder = folderUuidForGroupsInFolderAttribute.getValueOrExpressionEvaluationValue();
         
         stemUnderWhichAnyGroupCanHaveTemplate = StemFinder.findByUuid(GrouperSession.staticGrouperSession(), folderUuidForGroupsInFolder, false);
         if (stemUnderWhichAnyGroupCanHaveTemplate == null) {
@@ -151,18 +151,18 @@ public class GshTemplateConfiguration extends GrouperConfigurationModuleBase {
     }
     
     GrouperConfigurationModuleAttribute showOnFoldersAttribute = attributes.get("showOnFolders");
-    String showOnFoldersValue = showOnFoldersAttribute.getValueOrExpressionEvaluation();
+    String showOnFoldersValue = showOnFoldersAttribute.getValueOrExpressionEvaluationValue();
     
     if (GrouperUtil.booleanValue(showOnFoldersValue, false)) {
       GrouperConfigurationModuleAttribute folderShowTypeAttribute = attributes.get("folderShowType");
-      String folderShowTypeValue = folderShowTypeAttribute.getValueOrExpressionEvaluation();
+      String folderShowTypeValue = folderShowTypeAttribute.getValueOrExpressionEvaluationValue();
       
       GshTemplateFolderShowType folderShowType = GshTemplateFolderShowType.valueOfIgnoreCase(folderShowTypeValue, true);
       
       if (folderShowType == GshTemplateFolderShowType.certainFolders) {
         showTemplateOnAllGroups = false;
         GrouperConfigurationModuleAttribute folderUuidsToShowAttribute = attributes.get("folderUuidToShow");
-        String folderUuidsToShow = folderUuidsToShowAttribute.getValueOrExpressionEvaluation();
+        String folderUuidsToShow = folderUuidsToShowAttribute.getValueOrExpressionEvaluationValue();
         
         String[] folderUuidsOrNamesToShow = GrouperUtil.splitTrim(folderUuidsToShow, ",");
         
@@ -193,12 +193,12 @@ public class GshTemplateConfiguration extends GrouperConfigurationModuleBase {
     }
     
     GrouperConfigurationModuleAttribute runButtonGroupOrFolderAttribute = attributes.get("runButtonGroupOrFolder");
-    String runButtonGroupOrFolderAttributeValue = runButtonGroupOrFolderAttribute.getValueOrExpressionEvaluation();
+    String runButtonGroupOrFolderAttributeValue = runButtonGroupOrFolderAttribute.getValueOrExpressionEvaluationValue();
     
     if (StringUtils.equals("group", runButtonGroupOrFolderAttributeValue)) {
       
       GrouperConfigurationModuleAttribute defaultRunButtonGroupUuidOrNameAttribute = attributes.get("defaultRunButtonGroupUuidOrName");
-      String groupUuidOrName = defaultRunButtonGroupUuidOrNameAttribute.getValueOrExpressionEvaluation();
+      String groupUuidOrName = defaultRunButtonGroupUuidOrNameAttribute.getValueOrExpressionEvaluationValue();
       
       Group group = GroupFinder.findByUuid(groupUuidOrName, false);
       if (group == null) {
@@ -220,7 +220,7 @@ public class GshTemplateConfiguration extends GrouperConfigurationModuleBase {
           } else if (stemUnderWhichAnyGroupCanHaveTemplate != null) {
             
             GrouperConfigurationModuleAttribute groupShowOnDescendantsAttribute = attributes.get("groupShowOnDescendants");
-            String groupShowOnDescendants = groupShowOnDescendantsAttribute.getValueOrExpressionEvaluation();
+            String groupShowOnDescendants = groupShowOnDescendantsAttribute.getValueOrExpressionEvaluationValue();
             
             GshTemplateGroupShowOnDescendants showOnDescendants = GshTemplateGroupShowOnDescendants.valueOfIgnoreCase(groupShowOnDescendants, true);
             if (GshTemplateGroupShowOnDescendants.descendants == showOnDescendants && !stemUnderWhichAnyGroupCanHaveTemplate.isChildGroup(group)) {
@@ -240,7 +240,7 @@ public class GshTemplateConfiguration extends GrouperConfigurationModuleBase {
     } else if (StringUtils.equals("folder", runButtonGroupOrFolderAttributeValue)) {
       
       GrouperConfigurationModuleAttribute defaultRunButtonFolderUuidOrNameAttribute = attributes.get("defaultRunButtonFolderUuidOrName");
-      String folderUuidOrName = defaultRunButtonFolderUuidOrNameAttribute.getValueOrExpressionEvaluation();
+      String folderUuidOrName = defaultRunButtonFolderUuidOrNameAttribute.getValueOrExpressionEvaluationValue();
       
       Stem stem = StemFinder.findByUuid(GrouperSession.staticGrouperSession(), folderUuidOrName, false);
       if (stem == null) {
@@ -265,7 +265,7 @@ public class GshTemplateConfiguration extends GrouperConfigurationModuleBase {
     
     GrouperConfigurationModuleAttribute numberOfInputsAttribute = attributes.get("numberOfInputs");
     
-    String valueOrExpressionEvaluation = numberOfInputsAttribute.getValueOrExpressionEvaluation();
+    String valueOrExpressionEvaluation = numberOfInputsAttribute.getValueOrExpressionEvaluationValue();
     
     int numberOfInputs = GrouperUtil.intValue(valueOrExpressionEvaluation, 0);
     
@@ -334,7 +334,7 @@ public class GshTemplateConfiguration extends GrouperConfigurationModuleBase {
     Map<String, GrouperConfigurationModuleAttribute> attributes = this.retrieveAttributes();
     
     GrouperConfigurationModuleAttribute folderShowTypeAttribute = attributes.get("folderShowType");
-    String folderShowTypeValue = folderShowTypeAttribute.getValueOrExpressionEvaluation();
+    String folderShowTypeValue = folderShowTypeAttribute.getValueOrExpressionEvaluationValue();
     
     GshTemplateFolderShowType folderShowType = GshTemplateFolderShowType.valueOfIgnoreCase(folderShowTypeValue, true);
     if (folderShowType == GshTemplateFolderShowType.allFolders) {
@@ -342,7 +342,7 @@ public class GshTemplateConfiguration extends GrouperConfigurationModuleBase {
     }
     
     GrouperConfigurationModuleAttribute folderUuidsToShowAttribute = attributes.get("folderUuidToShow");
-    String folderUuidsToShow = folderUuidsToShowAttribute.getValueOrExpressionEvaluation();
+    String folderUuidsToShow = folderUuidsToShowAttribute.getValueOrExpressionEvaluationValue();
     
     String[] folderUuidsOrNamesToShow = GrouperUtil.splitTrim(folderUuidsToShow, ",");
     
@@ -352,7 +352,7 @@ public class GshTemplateConfiguration extends GrouperConfigurationModuleBase {
     stems.addAll(new StemFinder().assignStemNames(folderUuidOrNamesToShowIn).findStems());
     
     GrouperConfigurationModuleAttribute folderShowOnDescendantsAttribute = attributes.get("folderShowOnDescendants");
-    String folderShowOnDescendants = folderShowOnDescendantsAttribute.getValueOrExpressionEvaluation();
+    String folderShowOnDescendants = folderShowOnDescendantsAttribute.getValueOrExpressionEvaluationValue();
     
     GshTemplateFolderShowOnDescendants showOnDescendants = GshTemplateFolderShowOnDescendants.valueOfIgnoreCase(folderShowOnDescendants, true);
     if (showOnDescendants == GshTemplateFolderShowOnDescendants.certainFolders && stems.contains(defaultRunFolder)) {

@@ -332,14 +332,14 @@ public class GrouperConfigurationModuleAttribute {
   }
 
   /**
-   * get the value or the expression language evaluation
+   * get the value or the expression language script
    * @return the value
    */
   public String getValueOrExpressionEvaluation() {
     String value = null;
     
     if (this.isExpressionLanguage()) {
-      value = this.getExpressionLanguageScript() != null? this.getExpressionLanguageScript(): null;
+      value = this.getExpressionLanguageScript();
     } else if (this.getValue() != null) {
       value = this.getValue();
     }
@@ -352,7 +352,7 @@ public class GrouperConfigurationModuleAttribute {
   }
 
   /**
-   * get the value or the expression language evaluation
+   * get the value or the expression language evaluation. It's the resolved value after substitution.
    * @return the value
    */
   public String getValueOrExpressionEvaluationValue() {
@@ -417,7 +417,7 @@ public class GrouperConfigurationModuleAttribute {
     
     ConfigItemMetadataType valueType =  GrouperUtil.defaultIfNull(this.getConfigItemMetadata().getValueType(), ConfigItemMetadataType.STRING);
     
-    String value = this.getValueOrExpressionEvaluation();
+    String value = this.getValueOrExpressionEvaluationValue();
     if (StringUtils.isBlank(value)) {
       value = this.getDefaultValue();
     }
