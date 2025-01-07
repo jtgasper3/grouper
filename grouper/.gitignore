@@ -30,6 +30,8 @@ test.log
 /grouperClientFailoverState.bin
 src/grouper/SampleGrouperMain.java
 src/grouper/Test*
+src/grouper/Some*.java
+src/grouper/*Test.java
 src/grouper/Covid*.java
 felix-cache
 /confLocal/
