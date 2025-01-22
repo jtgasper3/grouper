@@ -482,6 +482,7 @@ public class Stem extends GrouperAPI implements GrouperHasContext, Owner,
    * 
    * @return the delegate
    */
+  @JsonIgnore
   public AttributeAssignStemDelegate getAttributeDelegate() {
     if (this.attributeAssignStemDelegate == null) {
       this.attributeAssignStemDelegate = new AttributeAssignStemDelegate(this);
